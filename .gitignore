@@ -1,0 +1,5 @@
+# .py files
+__pycache__
+
+# configuration files
+config.py
