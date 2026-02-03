@@ -8,7 +8,7 @@
 $ pip install -r ./requirements.txt
 ```
 
-### Run
+### Running
 
 Rename `./src/config.example.py` to `./src/config.py` and add yout [API key](https://huggingface.co/docs/hub/en/security-tokens) for Hugging Face.
 
