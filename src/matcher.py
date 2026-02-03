@@ -21,6 +21,7 @@ logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
 Pair: TypeAlias = tuple[int, int, float]
+Preferences: TypeAlias = dict[int, set[str]]
 
 
 @dataclass
@@ -99,9 +100,8 @@ def write_pairs_as_json(pairs: list[Pair], path: str):
         json.dump(output, f, ensure_ascii=False, indent=4)
 
 
-def extract_preferences(users: list[User]) -> dict[int, set[str]]:
-    """Extract user preferences from interests."""
-    preferences = {}
+def extract_preferences(users: list[User]) -> Preferences:
+    preferences: Preferences = {}
     pattern = r"@(\w+)"
 
     for i, user in enumerate(users):
@@ -123,32 +123,58 @@ def match_people(interests: list[str], users: list[User]) -> list[Pair]:
 
     preferences = extract_preferences(users)
 
-    n = len(interests)
-    scores = []
-    for i in range(n):
-        for j in range(i + 1, n):
-            a, b = users[i], users[j]
+    # firstly -- match people with mutual sympathy
+    used = set()
+    pairs = []
 
-            # TODO: match `sex` by preferences. Introduce `looking_for` field for `User` dataclass
-            if a.sex == b.sex:
+    n = len(interests)
+    for i in range(n):
+        if i in used:
+            continue
+        for j in range(i + 1, n):
+            if j in used:
                 continue
 
-            base_score = float(sim_matrix[i, j])
+            a, b = users[i], users[j]
+
+            if a.sex == b.sex:
+                continue
 
             a_wants_b = i in preferences and b.username in preferences[i]
             b_wants_a = j in preferences and a.username in preferences[j]
 
-            if a_wants_b and b_wants_a:
-                base_score += 0.5
-            elif a_wants_b or b_wants_a:
-                base_score += 0.3
+            if a_wants_b and b_wants_a:  # full match
+                score = float(sim_matrix[i, j])
+                pairs.append((i, j, round(score, 3)))
+                used.add(i)
+                used.add(j)
+                break
 
-            scores.append((base_score, i, j))
+    # match the remaining pairs greedily
+    scores = []
+    for i in range(n):
+        if i in used:
+            continue
+        for j in range(i + 1, n):
+            if j in used:
+                continue
+
+            a, b = users[i], users[j]
+
+            if a.sex == b.sex:
+                continue
+
+            score = float(sim_matrix[i, j])
+
+            a_wants_b = i in preferences and b.username in preferences[i]
+            b_wants_a = j in preferences and a.username in preferences[j]
+
+            if a_wants_b or b_wants_a:  # semi-match
+                score += 0.3
+
+            scores.append((score, i, j))
 
     scores.sort(reverse=True)
-
-    used = set()
-    pairs = []
 
     for score, i, j in scores:
         if i not in used and j not in used:
