@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class Database:
-    def __init__(self, db_path: str = ".db/valentines.db"):
+    def __init__(self, db_path: str = "valentines.db"):
         self.db_path = db_path
         self.init_db()
 
@@ -26,6 +26,9 @@ class Database:
                     is_bot INTEGER NOT NULL DEFAULT 0,
                     language_code TEXT,
                     is_premium INTEGER,
+                    sex TEXT,
+                    about TEXT,
+                    state TEXT NOT NULL DEFAULT 'start',
                     time_ranges TEXT NOT NULL DEFAULT '000000'
                 )
             """)
@@ -96,3 +99,40 @@ class Database:
                 (telegram_id,),
             )
             return cursor.fetchone()
+
+    def set_user_sex(self, telegram_id: int, sex: str) -> None:
+        """Set user's sex (male/female)."""
+        with self.get_connection() as conn:
+            conn.execute(
+                "UPDATE users SET sex = ? WHERE telegram_id = ?",
+                (sex, telegram_id),
+            )
+            conn.commit()
+
+    def set_user_about(self, telegram_id: int, about: str) -> None:
+        """Set user's about/introduction text."""
+        with self.get_connection() as conn:
+            conn.execute(
+                "UPDATE users SET about = ? WHERE telegram_id = ?",
+                (about, telegram_id),
+            )
+            conn.commit()
+
+    def set_user_state(self, telegram_id: int, state: str) -> None:
+        """Set user's current state in the flow."""
+        with self.get_connection() as conn:
+            conn.execute(
+                "UPDATE users SET state = ? WHERE telegram_id = ?",
+                (state, telegram_id),
+            )
+            conn.commit()
+
+    def get_user_state(self, telegram_id: int) -> str:
+        """Get user's current state."""
+        with self.get_connection() as conn:
+            cursor = conn.execute(
+                "SELECT state FROM users WHERE telegram_id = ?",
+                (telegram_id,),
+            )
+            row = cursor.fetchone()
+            return row["state"] if row else "start"
