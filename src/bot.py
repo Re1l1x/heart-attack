@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+from functools import wraps
 from pathlib import Path
 
 import yaml
@@ -30,6 +31,18 @@ db = Database(DB_PATH)
 
 # Users awaiting sticker recording (in-memory, dev tool)
 awaiting_sticker: set[int] = set()
+
+
+def admin_only(func):
+    """Decorator to restrict command to admins only."""
+
+    @wraps(func)
+    async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not update.effective_user or not db.is_admin(update.effective_user.id):
+            return
+        return await func(update, context)
+
+    return wrapper
 
 TIME_RANGES = [
     "10:00 -- 12:00",
@@ -186,6 +199,7 @@ async def time_button_callback(update: Update, _: ContextTypes.DEFAULT_TYPE) -> 
     await query.edit_message_reply_markup(reply_markup=keyboard)
 
 
+@admin_only
 async def stickerid_command(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /stickerid command - wait for sticker and print its file_id."""
     if not update.message or not update.effective_user:
@@ -195,6 +209,7 @@ async def stickerid_command(update: Update, _: ContextTypes.DEFAULT_TYPE) -> Non
     await update.message.reply_text(MESSAGES["stickerid"]["prompt"])
 
 
+@admin_only
 async def sticker_handler(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle sticker messages."""
     if not update.message or not update.effective_user or not update.message.sticker:
@@ -210,12 +225,10 @@ async def sticker_handler(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f"```\n{sticker.file_id}\n```", parse_mode="Markdown")
 
 
+@admin_only
 async def promote_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /promote command - grant admin rights to a user."""
-    if not update.message or not update.effective_user:
-        return
-
-    if not db.is_admin(update.effective_user.id):
+    if not update.message:
         return
 
     if not context.args:
@@ -237,12 +250,10 @@ async def promote_command(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await update.message.reply_text(MESSAGES["promote"]["success"].format(username=username))
 
 
+@admin_only
 async def demote_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /demote command - revoke admin rights from a user."""
-    if not update.message or not update.effective_user:
-        return
-
-    if not db.is_admin(update.effective_user.id):
+    if not update.message:
         return
 
     if not context.args:
@@ -264,6 +275,7 @@ async def demote_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     await update.message.reply_text(MESSAGES["demote"]["success"].format(username=username))
 
 
+@admin_only
 async def match_command(update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /match command - match all verified users into pairs."""
     if not update.message:

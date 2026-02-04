@@ -1,17 +1,11 @@
-# Kypidbot
+# kypidbot
 
 ## Quick Start
 
-### Install deps
+> You can build image locally: `docker build -t ghcr.io/jus1d/kypidbot:latest .` or pull it from `ghcr.io`: `docker pull ghcr.io/jus1d/kypidbot:latest`
+
+Fill up the `.env` file and run the bot
 
 ```bash
-$ pip install -r ./requirements.txt
-```
-
-### Running
-
-Rename `./src/config.example.py` to `./src/config.py` and add yout [API key](https://huggingface.co/docs/hub/en/security-tokens) for Hugging Face.
-
-```bash
-$ python3 ./src/matcher.py -o ./data/output.json ./data/input.json
+$ docker compose up -d
 ```
