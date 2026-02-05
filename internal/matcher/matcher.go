@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+
+	"github.com/jus1d/kypidbot/internal/config"
 )
 
 type MatchUser struct {
@@ -27,49 +29,8 @@ type FullMatch struct {
 	Score float64
 }
 
-func extractPreferences(users []MatchUser) map[int]map[string]bool {
-	preferences := make(map[int]map[string]bool)
-	pattern := regexp.MustCompile(`@(\w+)`)
-
-	for i, user := range users {
-		matches := pattern.FindAllStringSubmatch(user.About, -1)
-		if len(matches) > 0 {
-			preferences[i] = make(map[string]bool)
-			for _, match := range matches {
-				preferences[i][match[1]] = true
-			}
-		}
-	}
-
-	return preferences
-}
-
-func calculateTimeIntersection(a, b string) string {
-	if len(a) != 6 || len(b) != 6 {
-		return "000000"
-	}
-
-	result := make([]byte, 6)
-	for k := 0; k < 6; k++ {
-		if a[k] == '1' && b[k] == '1' {
-			result[k] = '1'
-		} else {
-			result[k] = '0'
-		}
-	}
-	return string(result)
-}
-
-func hasTimeOverlap(timeRange string) bool {
-	for _, ch := range timeRange {
-		if ch == '1' {
-			return true
-		}
-	}
-	return false
-}
-
-func Match(users []MatchUser, ollamaURL string) ([]MatchPair, []FullMatch, error) {
+// Match matches all users based on product logic: different genders, hungarian algorithm etc.
+func Match(users []MatchUser, ollama *config.Ollama) ([]MatchPair, []FullMatch, error) {
 	if len(users) < 2 {
 		return nil, nil, fmt.Errorf("need at least 2 users")
 	}
@@ -79,7 +40,7 @@ func Match(users []MatchUser, ollamaURL string) ([]MatchPair, []FullMatch, error
 		abouts[i] = u.About
 	}
 
-	vectors, err := getEmbeddings(abouts, ollamaURL)
+	vectors, err := getEmbeddings(abouts, ollama)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get embeddings: %w", err)
 	}
@@ -220,4 +181,102 @@ func Match(users []MatchUser, ollamaURL string) ([]MatchPair, []FullMatch, error
 	}
 
 	return pairs, fullMatches, nil
+}
+
+type ScorePair struct {
+	A     string
+	B     string
+	Score float64
+}
+
+// MatchByScore matches abouts into pairs purely by similarity score using Hungarian algorithm.
+func MatchByScore(abouts []string, ollama *config.Ollama) ([]ScorePair, error) {
+	if len(abouts) < 2 {
+		return nil, fmt.Errorf("need at least 2 abouts")
+	}
+
+	vectors, err := getEmbeddings(abouts, ollama)
+	if err != nil {
+		return nil, fmt.Errorf("get embeddings: %w", err)
+	}
+
+	n := len(abouts)
+	size := n / 2
+	if n%2 != 0 {
+		size = (n + 1) / 2
+	}
+
+	scoreMatrix := make([][]float64, size)
+	for i := range scoreMatrix {
+		scoreMatrix[i] = make([]float64, size)
+		for j := range scoreMatrix[i] {
+			ai := i
+			bj := size + j
+			if ai >= n || bj >= n {
+				scoreMatrix[i][j] = -1e9
+				continue
+			}
+			scoreMatrix[i][j] = cosineSimilarity(vectors[ai], vectors[bj])
+		}
+	}
+
+	assignment := hungarian(scoreMatrix)
+
+	var pairs []ScorePair
+	for i, j := range assignment {
+		bj := size + j
+		if i >= n || bj >= n {
+			continue
+		}
+		score := cosineSimilarity(vectors[i], vectors[bj])
+		pairs = append(pairs, ScorePair{
+			A:     abouts[i],
+			B:     abouts[bj],
+			Score: math.Round(score*1000) / 1000,
+		})
+	}
+
+	return pairs, nil
+}
+
+func extractPreferences(users []MatchUser) map[int]map[string]bool {
+	preferences := make(map[int]map[string]bool)
+	pattern := regexp.MustCompile(`@(\w+)`)
+
+	for i, user := range users {
+		matches := pattern.FindAllStringSubmatch(user.About, -1)
+		if len(matches) > 0 {
+			preferences[i] = make(map[string]bool)
+			for _, match := range matches {
+				preferences[i][match[1]] = true
+			}
+		}
+	}
+
+	return preferences
+}
+
+func calculateTimeIntersection(a, b string) string {
+	if len(a) != 6 || len(b) != 6 {
+		return "000000"
+	}
+
+	result := make([]byte, 6)
+	for k := 0; k < 6; k++ {
+		if a[k] == '1' && b[k] == '1' {
+			result[k] = '1'
+		} else {
+			result[k] = '0'
+		}
+	}
+	return string(result)
+}
+
+func hasTimeOverlap(timeRange string) bool {
+	for _, ch := range timeRange {
+		if ch == '1' {
+			return true
+		}
+	}
+	return false
 }

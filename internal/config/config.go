@@ -23,8 +23,9 @@ type Config struct {
 }
 
 type Ollama struct {
-	Host string `yaml:"host" env-required:"true"`
-	Port string `yaml:"port" env-required:"true"`
+	Host  string `yaml:"host" env-required:"true"`
+	Port  string `yaml:"port" env-required:"true"`
+	Model string `yaml:"model" env-required:"true"`
 }
 
 type Telegram struct {

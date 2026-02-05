@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/jus1d/kypidbot/internal/config"
 )
 
 type embeddingRequest struct {
@@ -17,9 +19,9 @@ type embeddingResponse struct {
 	Embedding []float64 `json:"embedding"`
 }
 
-func getEmbedding(text string, ollamaURL string) ([]float64, error) {
+func getEmbedding(text string, ollama *config.Ollama) ([]float64, error) {
 	reqBody := embeddingRequest{
-		Model:  "paraphrase-multilingual",
+		Model:  ollama.Model,
 		Prompt: text,
 	}
 
@@ -28,6 +30,7 @@ func getEmbedding(text string, ollamaURL string) ([]float64, error) {
 		return nil, fmt.Errorf("marshal embedding request: %w", err)
 	}
 
+	ollamaURL := fmt.Sprintf("%s:%s", ollama.Host, ollama.Port)
 	resp, err := http.Post(ollamaURL+"/api/embeddings", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("ollama request: %w", err)
@@ -51,11 +54,11 @@ func getEmbedding(text string, ollamaURL string) ([]float64, error) {
 	return embResp.Embedding, nil
 }
 
-func getEmbeddings(texts []string, ollamaURL string) ([][]float64, error) {
+func getEmbeddings(texts []string, ollama *config.Ollama) ([][]float64, error) {
 	embeddings := make([][]float64, len(texts))
 
 	for i, text := range texts {
-		emb, err := getEmbedding(text, ollamaURL)
+		emb, err := getEmbedding(text, ollama)
 		if err != nil {
 			return nil, fmt.Errorf("get embedding for text %d: %w", i, err)
 		}

@@ -16,16 +16,16 @@ type MatchResult struct {
 }
 
 type Matching struct {
-	users domain.UserRepository
-	pairs domain.PairRepository
-	url   string
+	users  domain.UserRepository
+	pairs  domain.PairRepository
+	ollama *config.Ollama
 }
 
 func NewMatching(users domain.UserRepository, pairs domain.PairRepository, c *config.Ollama) *Matching {
 	return &Matching{
-		users: users,
-		pairs: pairs,
-		url:   fmt.Sprintf("%s:%s", c.Host, c.Port),
+		users:  users,
+		pairs:  pairs,
+		ollama: c,
 	}
 }
 
@@ -50,7 +50,7 @@ func (m *Matching) RunMatch(ctx context.Context) (*MatchResult, error) {
 		}
 	}
 
-	pairs, fullMatches, err := matcher.Match(matchUsers, m.url)
+	pairs, fullMatches, err := matcher.Match(matchUsers, m.ollama)
 	if err != nil {
 		return nil, fmt.Errorf("match: %w", err)
 	}
