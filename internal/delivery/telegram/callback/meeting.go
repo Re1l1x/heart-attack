@@ -53,34 +53,34 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 		}
 	}
 
-	both, meeting, err := h.Meeting.BothConfirmed(context.Background(), meetingID)
-	if err != nil {
-		slog.Error("check both confirmed", sl.Err(err))
-		return nil
-	}
+	// both, meeting, err := h.Meeting.BothConfirmed(context.Background(), meetingID)
+	// if err != nil {
+	// 	slog.Error("check both confirmed", sl.Err(err))
+	// 	return nil
+	// }
 
-	if both && meeting != nil && meeting.PlaceID != nil && meeting.Time != nil {
-		placeDesc, _ := h.Meeting.GetPlaceDescription(context.Background(), *meeting.PlaceID)
+	// if both && meeting != nil && meeting.PlaceID != nil && meeting.Time != nil {
+	// 	placeDesc, _ := h.Meeting.GetPlaceDescription(context.Background(), *meeting.PlaceID)
 
-		finalMessage := messages.Format(messages.M.Meeting.Status.BothConfirmed, map[string]string{
-			"place": placeDesc,
-			"time":  *meeting.Time,
-		})
+	// 	finalMessage := messages.Format(messages.M.Meeting.Status.BothConfirmed, map[string]string{
+	// 		"place": placeDesc,
+	// 		"time":  *meeting.Time,
+	// 	})
 
-		cancelKb := view.CancelKeyboard(fmt.Sprintf("%d", meetingID))
+	// 	cancelKb := view.CancelKeyboard(fmt.Sprintf("%d", meetingID))
 
-		_, err := h.Bot.Send(&tele.User{ID: telegramID}, finalMessage, cancelKb)
-		if err != nil {
-			slog.Error("send both confirmed to user", sl.Err(err))
-		}
+	// 	_, err := h.Bot.Send(&tele.User{ID: telegramID}, finalMessage, cancelKb)
+	// 	if err != nil {
+	// 		slog.Error("send both confirmed to user", sl.Err(err))
+	// 	}
 
-		if partnerID != 0 {
-			_, err := h.Bot.Send(&tele.User{ID: partnerID}, finalMessage, cancelKb)
-			if err != nil {
-				slog.Error("send both confirmed to partner", sl.Err(err))
-			}
-		}
-	}
+	// 	if partnerID != 0 {
+	// 		_, err := h.Bot.Send(&tele.User{ID: partnerID}, finalMessage, cancelKb)
+	// 		if err != nil {
+	// 			slog.Error("send both confirmed to partner", sl.Err(err))
+	// 		}
+	// 	}
+	// }
 
 	return nil
 }

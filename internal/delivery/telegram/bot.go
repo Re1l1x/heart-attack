@@ -30,8 +30,9 @@ func NewBot(
 	users domain.UserRepository,
 ) (*Bot, error) {
 	pref := tele.Settings{
-		Token:  token,
-		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
+		Token:     token,
+		Poller:    &tele.LongPoller{Timeout: 10 * time.Second},
+		ParseMode: tele.ModeHTML,
 	}
 
 	bot, err := tele.NewBot(pref)

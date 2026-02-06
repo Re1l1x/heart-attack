@@ -42,5 +42,5 @@ func (h *Handler) Text(c tele.Context) error {
 
 	selected := domain.BinaryToSet(binaryStr)
 
-	return c.Send(messages.M.Profile.About.Accepted, view.TimeKeyboard(selected))
+	return c.Send(messages.M.Profile.Schedule.Request, view.TimeKeyboard(selected))
 }

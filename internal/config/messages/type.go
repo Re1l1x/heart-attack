@@ -34,7 +34,6 @@ type ProfileSection struct {
 type SexOnboardingSection struct {
 	AskNew   string `yaml:"ask_new" env-required:"true"`
 	AskRetry string `yaml:"ask_retry" env-required:"true"`
-	Accepted string `yaml:"accepted" env-required:"true"`
 }
 
 type AboutSection struct {
@@ -129,7 +128,6 @@ type MeetingInviteSection struct {
 type MeetingStatusSection struct {
 	Confirmed        string `yaml:"confirmed" env-required:"true"`
 	PartnerConfirmed string `yaml:"partner_confirmed" env-required:"true"`
-	BothConfirmed    string `yaml:"both_confirmed" env-required:"true"`
 	Cancelled        string `yaml:"cancelled" env-required:"true"`
 	PartnerCancelled string `yaml:"partner_cancelled" env-required:"true"`
 }
