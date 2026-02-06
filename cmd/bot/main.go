@@ -33,14 +33,13 @@ func main() {
 	log.Info("postgresql: ok", sl.Err(err))
 
 	userRepo := postgres.NewUserRepo(db)
-	pairRepo := postgres.NewPairRepo(db)
 	placeRepo := postgres.NewPlaceRepo(db)
 	meetingRepo := postgres.NewMeetingRepo(db)
 
 	registration := usecase.NewRegistration(userRepo)
 	admin := usecase.NewAdmin(userRepo)
-	matching := usecase.NewMatching(userRepo, pairRepo, &cfg.Ollama)
-	meeting := usecase.NewMeeting(userRepo, pairRepo, placeRepo, meetingRepo)
+	matching := usecase.NewMatching(userRepo, meetingRepo, &cfg.Ollama)
+	meeting := usecase.NewMeeting(userRepo, placeRepo, meetingRepo)
 
 	bot, err := telegram.NewBot(
 		cfg.Telegram.Token,

@@ -16,16 +16,16 @@ type MatchResult struct {
 }
 
 type Matching struct {
-	users  domain.UserRepository
-	pairs  domain.PairRepository
-	ollama *config.Ollama
+	users    domain.UserRepository
+	meetings domain.MeetingRepository
+	ollama   *config.Ollama
 }
 
-func NewMatching(users domain.UserRepository, pairs domain.PairRepository, c *config.Ollama) *Matching {
+func NewMatching(users domain.UserRepository, meetings domain.MeetingRepository, c *config.Ollama) *Matching {
 	return &Matching{
-		users:  users,
-		pairs:  pairs,
-		ollama: c,
+		users:    users,
+		meetings: meetings,
+		ollama:   c,
 	}
 }
 
@@ -55,22 +55,21 @@ func (m *Matching) RunMatch(ctx context.Context) (*MatchResult, error) {
 		return nil, fmt.Errorf("match: %w", err)
 	}
 
-	if err := m.pairs.ClearPairs(ctx); err != nil {
-		return nil, fmt.Errorf("clear pairs: %w", err)
+	if err := m.meetings.ClearMeetings(ctx); err != nil {
+		return nil, fmt.Errorf("clear meetings: %w", err)
 	}
 
 	for _, p := range pairs {
 		dill := users[p.I]
 		doe := users[p.J]
 
-		if err := m.pairs.SavePair(ctx, &domain.Pair{
-			DillID:           dill.ID,
-			DoeID:            doe.ID,
-			Score:            p.Score,
-			TimeIntersection: p.TimeIntersection,
-			IsFullmatch:      false,
+		if err := m.meetings.SaveMeeting(ctx, &domain.Meeting{
+			DillID:      dill.ID,
+			DoeID:       doe.ID,
+			PairScore:   p.Score,
+			IsFullmatch: false,
 		}); err != nil {
-			return nil, fmt.Errorf("save pair: %w", err)
+			return nil, fmt.Errorf("save meeting: %w", err)
 		}
 	}
 
@@ -78,12 +77,11 @@ func (m *Matching) RunMatch(ctx context.Context) (*MatchResult, error) {
 		dill := users[fm.I]
 		doe := users[fm.J]
 
-		if err := m.pairs.SavePair(ctx, &domain.Pair{
-			DillID:           dill.ID,
-			DoeID:            doe.ID,
-			Score:            fm.Score,
-			TimeIntersection: "000000",
-			IsFullmatch:      true,
+		if err := m.meetings.SaveMeeting(ctx, &domain.Meeting{
+			DillID:      dill.ID,
+			DoeID:       doe.ID,
+			PairScore:   fm.Score,
+			IsFullmatch: true,
 		}); err != nil {
 			return nil, fmt.Errorf("save full match: %w", err)
 		}

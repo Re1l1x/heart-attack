@@ -9,22 +9,56 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-func (h *Handler) Meet(c tele.Context) error {
-	result, err := h.Meeting.CreateMeetings(context.Background())
+const mmSticker = "CAACAgIAAxkBAANtaYKDDtR5d1478iPkCrZr2xnZOpMAAgIBAAJWnb0KTuJsgctA5P84BA"
+
+func (h *Handler) MM(c tele.Context) error {
+	sticker := &tele.Sticker{File: tele.File{FileID: mmSticker}}
+	stickerMsg, err := h.Bot.Send(c.Chat(), sticker)
+	if err != nil {
+		h.Log.Error("send sticker", sl.Err(err))
+	}
+
+	result, err := h.Matching.RunMatch(context.Background())
+	if err != nil {
+		if stickerMsg != nil {
+			_ = h.Bot.Delete(stickerMsg)
+		}
+		h.Log.Error("run match", sl.Err(err))
+		return c.Send(view.Msg("mm", "not_enough_users"))
+	}
+
+	if stickerMsg != nil {
+		_ = h.Bot.Delete(stickerMsg)
+	}
+
+	fullInfo := ""
+	if result.FullMatchCount > 0 {
+		fullInfo = fmt.Sprintf("\n\nполных совпадений (без общего времени): %d", result.FullMatchCount)
+	}
+
+	if err := c.Send(view.Msgf(map[string]string{
+		"pairs":     fmt.Sprintf("%d", result.PairsCount),
+		"users":     fmt.Sprintf("%d", result.UsersCount),
+		"full_info": fullInfo,
+	}, "mm", "matched")); err != nil {
+		h.Log.Error("send match result", sl.Err(err))
+	}
+
+	meetResult, err := h.Meeting.CreateMeetings(context.Background())
 	if err != nil {
 		h.Log.Error("create meetings", sl.Err(err))
 		if err.Error() == "no pairs" {
-			return c.Send(view.Msg("meet", "no_pairs"))
+			return c.Send(view.Msg("mm", "no_pairs"))
 		}
 		if err.Error() == "no places" {
-			return c.Send(view.Msg("meet", "no_places"))
+			return c.Send(view.Msg("mm", "no_places"))
 		}
 		return nil
 	}
 
 	count := 0
 
-	for _, m := range result.Meetings {
+	for _, m := range meetResult.Meetings {
 		message := view.Msgf(map[string]string{
 			"place": m.Place,
 			"time":  m.Time,
@@ -45,7 +79,7 @@ func (h *Handler) Meet(c tele.Context) error {
 		count++
 	}
 
-	for _, fm := range result.FullMatches {
+	for _, fm := range meetResult.FullMatches {
 		dillMsg := view.Msgf(map[string]string{
 			"partner_username": fm.DoeUsername,
 		}, "meet", "full_match")
@@ -69,5 +103,5 @@ func (h *Handler) Meet(c tele.Context) error {
 
 	return c.Send(view.Msgf(map[string]string{
 		"count": fmt.Sprintf("%d", count),
-	}, "meet", "success"))
+	}, "mm", "success"))
 }

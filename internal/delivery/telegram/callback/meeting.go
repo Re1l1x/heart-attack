@@ -55,12 +55,12 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 		return nil
 	}
 
-	if both && meeting != nil {
-		placeDesc, _ := h.Meeting.GetPlaceDescription(context.Background(), meeting.PlaceID)
+	if both && meeting != nil && meeting.PlaceID != nil && meeting.Time != nil {
+		placeDesc, _ := h.Meeting.GetPlaceDescription(context.Background(), *meeting.PlaceID)
 
 		finalMessage := view.Msgf(map[string]string{
 			"place": placeDesc,
-			"time":  meeting.Time,
+			"time":  *meeting.Time,
 		}, "meet", "both_confirmed")
 
 		cancelKb := view.CancelKeyboard(fmt.Sprintf("%d", meetingID))

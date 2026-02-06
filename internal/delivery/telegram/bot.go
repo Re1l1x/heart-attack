@@ -89,8 +89,7 @@ func (b *Bot) Setup() {
 	btnCancelMeeting := tele.Btn{Unique: "cancel_meeting"}
 
 	b.bot.Handle("/start", cmd.Start)
-	b.bot.Handle("/match", cmd.Match, b.AdminOnly)
-	b.bot.Handle("/meet", cmd.Meet, b.AdminOnly)
+	b.bot.Handle("/mm", cmd.MM, b.AdminOnly)
 	b.bot.Handle("/promote", cmd.Promote, b.AdminOnly)
 	b.bot.Handle("/demote", cmd.Demote, b.AdminOnly)
 

@@ -50,14 +50,14 @@ demote:
   not_admin: "@{username} не является админом"
   success: "@{username} больше не админ"
 
-match:
+mm:
   not_enough_users: "недостаточно пользователей для формирования пар"
-  success: "готово! создано {pairs} пар из {users} пользователей{full_info}"
-
-meet:
-  no_pairs: "нет сформированных пар. сначала используй /match"
+  matched: "создано {pairs} пар из {users} пользователей{full_info}"
+  no_pairs: "нет сформированных пар"
   no_places: "нет добавленных мест. добавь места в базу данных"
   success: "готово! разослано {count} встреч"
+
+meet:
   notification: |
     у тебя свидание!
 
