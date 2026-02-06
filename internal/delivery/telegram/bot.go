@@ -82,6 +82,8 @@ func (b *Bot) Setup() {
 	btnConfirmMeeting := tele.Btn{Unique: "confirm_meeting"}
 	btnCancelMeeting := tele.Btn{Unique: "cancel_meeting"}
 
+	b.bot.Use(LogUpdates)
+
 	b.bot.Handle("/start", cmd.Start)
 	b.bot.Handle("/mm", cmd.MM, b.AdminOnly)
 	b.bot.Handle("/promote", cmd.Promote, b.AdminOnly)

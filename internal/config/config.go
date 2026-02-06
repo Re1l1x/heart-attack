@@ -1,12 +1,10 @@
 package config
 
 import (
-	"log/slog"
 	"os"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
-	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 )
 
 const (
@@ -48,21 +46,18 @@ func MustLoad() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
 
 	if configPath == "" {
-		slog.Error("missed CONFIG_PATH parameter")
-		os.Exit(1)
+		panic("missed CONFIG_PATH environment variable")
 	}
 
 	var err error
 	if _, err = os.Stat(configPath); os.IsNotExist(err) {
-		slog.Error("config file does not exist", slog.String("path", configPath))
-		os.Exit(1)
+		panic("config file does not exist: " + configPath)
 	}
 
 	var config Config
 
 	if err = cleanenv.ReadConfig(configPath, &config); err != nil {
-		slog.Error("cannot read config", sl.Err(err))
-		os.Exit(1)
+		panic("cannot read config: " + err.Error())
 	}
 
 	return &config

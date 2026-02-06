@@ -14,9 +14,17 @@ import (
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
-
 	cfg := config.MustLoad()
+
+	var level slog.Level
+	switch cfg.Env {
+	case config.EnvProduction:
+		level = slog.LevelInfo
+	default:
+		level = slog.LevelDebug
+	}
+
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: level})))
 
 	if err := telegram.LoadMessages("messages.yaml"); err != nil {
 		slog.Error("failed load message replics", sl.Err(err))
