@@ -20,10 +20,17 @@ func (h *Handler) Text(c tele.Context) error {
 		return nil
 	}
 
-	if state != "awaiting_about" {
-		return nil
+	switch state {
+	case "awaiting_about":
+		return h.handleAbout(c, sender)
+	case "awaiting_support":
+		return h.handleSupport(c, sender)
 	}
 
+	return nil
+}
+
+func (h *Handler) handleAbout(c tele.Context, sender *tele.User) error {
 	if err := h.Registration.SetAbout(context.Background(), sender.ID, c.Text()); err != nil {
 		slog.Error("set about", sl.Err(err))
 		return nil
@@ -43,4 +50,30 @@ func (h *Handler) Text(c tele.Context) error {
 	selected := domain.BinaryToSet(binaryStr)
 
 	return c.Send(messages.M.Profile.Schedule.Request, view.TimeKeyboard(selected))
+}
+
+func (h *Handler) handleSupport(c tele.Context, sender *tele.User) error {
+	if err := h.Registration.SetState(context.Background(), sender.ID, "completed"); err != nil {
+		slog.Error("set state", sl.Err(err))
+		return nil
+	}
+
+	admins, err := h.Users.GetAdmins(context.Background())
+	if err != nil {
+		slog.Error("get admins", sl.Err(err))
+		return nil
+	}
+
+	content := messages.Format(messages.M.Command.Support.Ticket, map[string]string{
+		"username":    sender.Username,
+		"description": c.Text(),
+	})
+
+	for _, admin := range admins {
+		if _, err := h.Bot.Send(&tele.User{ID: admin.TelegramID}, content); err != nil {
+			slog.Error("send support to admin", sl.Err(err), "admin_id", admin.TelegramID)
+		}
+	}
+
+	return c.Send(messages.M.Command.Support.ProblemSent)
 }

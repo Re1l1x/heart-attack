@@ -33,4 +33,5 @@ type UserRepository interface {
 	SetAdmin(ctx context.Context, telegramID int64, isAdmin bool) error
 	GetVerifiedUsers(ctx context.Context) ([]User, error)
 	GetUserUsername(ctx context.Context, telegramID int64) (string, error)
+	GetAdmins(ctx context.Context) ([]User, error)
 }

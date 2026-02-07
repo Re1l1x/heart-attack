@@ -21,14 +21,7 @@ type Bot struct {
 	users        domain.UserRepository
 }
 
-func NewBot(
-	token string,
-	registration *usecase.Registration,
-	admin *usecase.Admin,
-	matching *usecase.Matching,
-	meeting *usecase.Meeting,
-	users domain.UserRepository,
-) (*Bot, error) {
+func NewBot(token string, registration *usecase.Registration, admin *usecase.Admin, matching *usecase.Matching, meeting *usecase.Meeting, users domain.UserRepository) (*Bot, error) {
 	pref := tele.Settings{
 		Token:     token,
 		Poller:    &tele.LongPoller{Timeout: 10 * time.Second},
@@ -68,6 +61,8 @@ func (b *Bot) Setup() {
 
 	msg := &message.Handler{
 		Registration: b.registration,
+		Users:        b.users,
+		Bot:          b.bot,
 	}
 
 	btnSexMale := tele.Btn{Unique: "sex_male"}
@@ -77,6 +72,7 @@ func (b *Bot) Setup() {
 	btnResubmit := tele.Btn{Unique: "resubmit"}
 	btnConfirmMeeting := tele.Btn{Unique: "confirm_meeting"}
 	btnCancelMeeting := tele.Btn{Unique: "cancel_meeting"}
+	btnCancelSupport := tele.Btn{Unique: "cancel_support"}
 
 	b.bot.Use(LogUpdates)
 
@@ -84,6 +80,8 @@ func (b *Bot) Setup() {
 	b.bot.Handle("/mm", cmd.MM, b.AdminOnly)
 	b.bot.Handle("/promote", cmd.Promote, b.AdminOnly)
 	b.bot.Handle("/demote", cmd.Demote, b.AdminOnly)
+	b.bot.Handle("/about", cmd.About)
+	b.bot.Handle("/support", cmd.Support)
 
 	b.bot.Handle(&btnSexMale, cb.Sex)
 	b.bot.Handle(&btnSexFemale, cb.Sex)
@@ -92,6 +90,7 @@ func (b *Bot) Setup() {
 	b.bot.Handle(&btnResubmit, cb.Resubmit)
 	b.bot.Handle(&btnConfirmMeeting, cb.ConfirmMeeting)
 	b.bot.Handle(&btnCancelMeeting, cb.CancelMeeting)
+	b.bot.Handle(&btnCancelSupport, cb.CancelSupport)
 
 	b.bot.Handle(tele.OnText, msg.Text)
 	b.bot.Handle(tele.OnSticker, msg.Sticker, b.AdminOnly)

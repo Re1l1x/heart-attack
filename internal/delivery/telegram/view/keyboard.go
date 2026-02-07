@@ -61,6 +61,13 @@ func MeetingKeyboard(meetingID string) *tele.ReplyMarkup {
 	return menu
 }
 
+func CancelSupportKeyboard() *tele.ReplyMarkup {
+	menu := &tele.ReplyMarkup{}
+	btn := menu.Data(messages.M.UI.Buttons.CancelSupport, "cancel_support")
+	menu.Inline(menu.Row(btn))
+	return menu
+}
+
 func CancelKeyboard(meetingID string) *tele.ReplyMarkup {
 	menu := &tele.ReplyMarkup{}
 	cancel := menu.Data(messages.M.UI.Buttons.CancelMeeting, "cancel_meeting", meetingID)

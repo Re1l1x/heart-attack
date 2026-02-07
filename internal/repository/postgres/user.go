@@ -138,6 +138,27 @@ func (r *UserRepo) GetVerifiedUsers(ctx context.Context) ([]domain.User, error) 
 	return users, rows.Err()
 }
 
+func (r *UserRepo) GetAdmins(ctx context.Context) ([]domain.User, error) {
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT id, telegram_id, username, first_name, last_name, is_bot,
+		       language_code, is_premium, sex, about, state, time_ranges, is_admin
+		FROM users WHERE is_admin = true`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []domain.User
+	for rows.Next() {
+		u, err := scanUserFromRows(rows)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, *u)
+	}
+	return users, rows.Err()
+}
+
 func (r *UserRepo) GetUserUsername(ctx context.Context, telegramID int64) (string, error) {
 	var username sql.NullString
 	err := r.db.QueryRowContext(ctx,

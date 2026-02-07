@@ -1,7 +1,13 @@
 package message
 
-import "github.com/jus1d/kypidbot/internal/usecase"
+import (
+	"github.com/jus1d/kypidbot/internal/domain"
+	"github.com/jus1d/kypidbot/internal/usecase"
+	tele "gopkg.in/telebot.v3"
+)
 
 type Handler struct {
 	Registration *usecase.Registration
+	Users        domain.UserRepository
+	Bot          *tele.Bot
 }

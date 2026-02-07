@@ -5,14 +5,14 @@ var M Messages
 type Messages struct {
 	Start        StartSection        `yaml:"start" env-required:"true"`
 	Profile      ProfileSection      `yaml:"profile" env-required:"true"`
+	Command      CommandSection      `yaml:"command" env-required:"true"`
 	Registration RegistrationSection `yaml:"registration" env-required:"true"`
-
-	UI       UISection       `yaml:"ui" env-required:"true"`
-	Service  ServiceSection  `yaml:"service" env-required:"true"`
-	Admin    AdminSection    `yaml:"admin" env-required:"true"`
-	Error    ErrorSection    `yaml:"error" env-required:"true"`
-	Matching MatchingSection `yaml:"matching" env-required:"true"`
-	Meeting  MeetingSection  `yaml:"meeting" env-required:"true"`
+	UI           UISection           `yaml:"ui" env-required:"true"`
+	Service      ServiceSection      `yaml:"service" env-required:"true"`
+	Admin        AdminSection        `yaml:"admin" env-required:"true"`
+	Error        ErrorSection        `yaml:"error" env-required:"true"`
+	Matching     MatchingSection     `yaml:"matching" env-required:"true"`
+	Meeting      MeetingSection      `yaml:"meeting" env-required:"true"`
 }
 
 type BotSection struct {
@@ -45,6 +45,18 @@ type ScheduleSection struct {
 	Request string `yaml:"request" env-required:"true"`
 }
 
+type CommandSection struct {
+	About   string         `yaml:"about" env-required:"true"`
+	Support SupportSection `yaml:"support" env-required:"true"`
+}
+
+type SupportSection struct {
+	Request     string `yaml:"request" env-required:"true"`
+	ProblemSent string `yaml:"problem_sent" env-required:"true"`
+	Ticket      string `yaml:"ticket" env-required:"true"`
+	Cancelled   string `yaml:"cancelled" env-required:"true"`
+}
+
 type RegistrationSection struct {
 	Completed string `yaml:"completed" env-required:"true"`
 }
@@ -60,6 +72,7 @@ type ButtonsSection struct {
 	Resubmit       string     `yaml:"resubmit" env-required:"true"`
 	ConfirmMeeting string     `yaml:"confirm_meeting" env-required:"true"`
 	CancelMeeting  string     `yaml:"cancel_meeting" env-required:"true"`
+	CancelSupport  string     `yaml:"cancel_support" env-required:"true"`
 }
 
 type SexButtons struct {

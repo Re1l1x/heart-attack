@@ -26,11 +26,10 @@ func (h *Handler) ConfirmTime(c tele.Context) error {
 	}
 
 	selected := domain.BinaryToSet(binaryStr)
+	merged := domain.MergeSelectedRanges(selected)
 	summary := messages.M.UI.Chosen
-	for _, tr := range domain.TimeRanges {
-		if selected[tr] {
-			summary += "\n- " + tr
-		}
+	for _, tr := range merged {
+		summary += "\n- " + tr
 	}
 
 	if _, err := h.Bot.Edit(c.Message(), c.Message().Text+"\n\n"+summary); err != nil {

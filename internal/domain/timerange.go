@@ -66,6 +66,28 @@ func HasTimeOverlap(timeRange string) bool {
 	return false
 }
 
+func MergeSelectedRanges(selected map[string]bool) []string {
+	var merged []string
+	start := -1
+	for i, tr := range TimeRanges {
+		if selected[tr] {
+			if start == -1 {
+				start = i
+			}
+		} else {
+			if start != -1 {
+				merged = append(merged, TimeRanges[start][:5]+" -- "+TimeRanges[i-1][len(TimeRanges[i-1])-5:])
+				start = -1
+			}
+		}
+	}
+	if start != -1 {
+		last := TimeRanges[len(TimeRanges)-1]
+		merged = append(merged, TimeRanges[start][:5]+" -- "+last[len(last)-5:])
+	}
+	return merged
+}
+
 func CalculateTimeIntersection(a, b string) string {
 	if len(a) != 6 || len(b) != 6 {
 		return "000000"
