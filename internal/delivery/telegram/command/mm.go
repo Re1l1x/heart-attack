@@ -61,7 +61,8 @@ func (h *Handler) MM(c tele.Context) error {
 	count := 0
 
 	for _, m := range meetResult.Meetings {
-		message := messages.Format(messages.M.Meeting.Invite.Message, map[string]string{
+		content := fmt.Sprintf("%s\n%s", messages.M.Meeting.Invite.Message, messages.M.Meeting.Invite.WaitConfirmation)
+		message := messages.Format(content, map[string]string{
 			"place": m.Place,
 			"time":  m.Time,
 		})

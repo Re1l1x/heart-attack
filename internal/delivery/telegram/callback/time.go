@@ -46,5 +46,5 @@ func (h *Handler) Time(c tele.Context) error {
 		return c.Respond()
 	}
 
-	return c.Edit(messages.M.Profile.About.Accepted, view.TimeKeyboard(selected))
+	return c.Edit(messages.M.Profile.Schedule.Request, view.TimeKeyboard(selected))
 }
