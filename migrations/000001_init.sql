@@ -31,9 +31,10 @@ CREATE TABLE meetings (
     pair_score DOUBLE PRECISION NOT NULL,
     is_fullmatch BOOLEAN NOT NULL DEFAULT FALSE,
     place_id INTEGER REFERENCES places(id),
-    time TEXT,
+    time TIMESTAMPTZ,
     dill_state confirmation_state NOT NULL DEFAULT 'not_confirmed',
-    doe_state confirmation_state NOT NULL DEFAULT 'not_confirmed'
+    doe_state confirmation_state NOT NULL DEFAULT 'not_confirmed',
+    users_notified BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- +goose Down

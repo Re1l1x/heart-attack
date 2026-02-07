@@ -3,6 +3,7 @@ package domain
 import (
 	"fmt"
 	"math/rand"
+	"time"
 )
 
 var TimeRanges = []string{
@@ -12,6 +13,11 @@ var TimeRanges = []string{
 	"16:00 -- 18:00",
 	"18:00 -- 20:00",
 	"20:00 -- 22:00",
+}
+
+func Timef(t time.Time) string {
+	loc, _ := time.LoadLocation("Europe/Samara")
+	return t.In(loc).Format("02.01 15:04")
 }
 
 func BinaryToSet(binary string) map[string]bool {

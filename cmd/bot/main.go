@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -9,6 +10,7 @@ import (
 	"github.com/jus1d/kypidbot/internal/config"
 	"github.com/jus1d/kypidbot/internal/delivery/telegram"
 	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
+	"github.com/jus1d/kypidbot/internal/notifications"
 	"github.com/jus1d/kypidbot/internal/repository/postgres"
 	"github.com/jus1d/kypidbot/internal/usecase"
 )
@@ -62,9 +64,14 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
+	notifCtx, notifCancel := context.WithCancel(context.Background())
+	defer notifCancel()
+	go notifications.Go(notifCtx, &cfg.Notifications, bot.TeleBot(), userRepo, placeRepo, meetingRepo)
+
 	go bot.Start()
 
 	<-stop
 	slog.Info("bot: shutting down...")
+	notifCancel()
 	bot.Stop()
 }

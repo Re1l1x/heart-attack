@@ -132,9 +132,10 @@ type MatchingSuccess struct {
 }
 
 type MeetingSection struct {
-	Invite  MeetingInviteSection  `yaml:"invite" env-required:"true"`
-	Status  MeetingStatusSection  `yaml:"status" env-required:"true"`
-	Special MeetingSpecialSection `yaml:"special" env-required:"true"`
+	Invite   MeetingInviteSection  `yaml:"invite" env-required:"true"`
+	Status   MeetingStatusSection  `yaml:"status" env-required:"true"`
+	Reminder string                `yaml:"reminder" env-required:"true"`
+	Special  MeetingSpecialSection `yaml:"special" env-required:"true"`
 }
 
 type MeetingInviteSection struct {

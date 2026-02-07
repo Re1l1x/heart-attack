@@ -3,9 +3,12 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math/rand"
+	"time"
 
 	"github.com/jus1d/kypidbot/internal/domain"
+	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 )
 
 type MeetingNotification struct {
@@ -13,14 +16,14 @@ type MeetingNotification struct {
 	DillID    int64
 	DoeID     int64
 	Place     string
-	Time      string
+	Time      time.Time
 }
 
 type FullMatchNotification struct {
 	DillTelegramID int64
 	DoeTelegramID  int64
-	DillUsername    string
-	DoeUsername     string
+	DillUsername   string
+	DoeUsername    string
 }
 
 type MeetResult struct {
@@ -34,11 +37,7 @@ type Meeting struct {
 	meetings domain.MeetingRepository
 }
 
-func NewMeeting(
-	users domain.UserRepository,
-	places domain.PlaceRepository,
-	meetings domain.MeetingRepository,
-) *Meeting {
+func NewMeeting(users domain.UserRepository, places domain.PlaceRepository, meetings domain.MeetingRepository) *Meeting {
 	return &Meeting{
 		users:    users,
 		places:   places,
@@ -90,7 +89,22 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 		timeIntersection := domain.CalculateTimeIntersection(dill.TimeRanges, doe.TimeRanges)
 		meetingTime := domain.PickRandomTime(timeIntersection)
 
-		if err := m.meetings.AssignPlaceAndTime(ctx, mt.ID, place.ID, meetingTime); err != nil {
+		// Format: YYYY-MM-DD HH:MM
+		full := fmt.Sprintf("%d-02-14 %s", time.Now().Year(), meetingTime)
+		layout := "2006-01-02 15:04"
+
+		loc, err := time.LoadLocation("Europe/Samara")
+		if err != nil {
+			slog.Error("load location", sl.Err(err))
+			return nil, nil
+		}
+
+		t, err := time.ParseInLocation(layout, full, loc)
+		if err != nil {
+			panic(err)
+		}
+
+		if err := m.meetings.AssignPlaceAndTime(ctx, mt.ID, place.ID, t); err != nil {
 			return nil, fmt.Errorf("assign place and time: %w", err)
 		}
 
@@ -99,7 +113,7 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 			DillID:    dill.TelegramID,
 			DoeID:     doe.TelegramID,
 			Place:     place.Description,
-			Time:      meetingTime,
+			Time:      t,
 		})
 	}
 
@@ -120,8 +134,8 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 		result.FullMatches = append(result.FullMatches, FullMatchNotification{
 			DillTelegramID: dill.TelegramID,
 			DoeTelegramID:  doe.TelegramID,
-			DillUsername:    dill.Username,
-			DoeUsername:     doe.Username,
+			DillUsername:   dill.Username,
+			DoeUsername:    doe.Username,
 		})
 	}
 

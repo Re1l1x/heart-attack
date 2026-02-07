@@ -10,4 +10,5 @@ type Place struct {
 type PlaceRepository interface {
 	SavePlace(ctx context.Context, description string) error
 	GetAllPlaces(ctx context.Context) ([]Place, error)
+	GetPlaceDescription(ctx context.Context, placeID int64) (string, error)
 }

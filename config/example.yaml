@@ -4,6 +4,10 @@ bot:
   token: "telegram-token"
   messages_path: "./messages/messages.yaml"
 
+notifications:
+  poll_interval: 1s
+  upcoming_in: 1h
+
 ollama:
   host: "http://ollama"
   port: "11434"

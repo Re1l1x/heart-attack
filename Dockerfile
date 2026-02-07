@@ -12,4 +12,5 @@ COPY --from=builder /build/kypidbot .
 COPY --from=builder /build/migrate .
 COPY --from=builder /build/messages ./messages
 COPY --from=builder /build/migrations ./migrations
+RUN apk add --no-cache tzdata
 CMD ["sh", "-c", "./migrate up && ./kypidbot"]

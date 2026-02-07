@@ -107,3 +107,7 @@ func (b *Bot) Start() {
 func (b *Bot) Stop() {
 	b.bot.Stop()
 }
+
+func (b *Bot) TeleBot() *tele.Bot {
+	return b.bot
+}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/jus1d/kypidbot/internal/config/messages"
 	"github.com/jus1d/kypidbot/internal/delivery/telegram/view"
+	"github.com/jus1d/kypidbot/internal/domain"
 	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 	tele "gopkg.in/telebot.v3"
 )
@@ -49,16 +50,14 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 
 	if !both {
 		place := ""
-		timeStr := ""
 		if meeting != nil && meeting.PlaceID != nil && meeting.Time != nil {
 			place, err = h.Meeting.GetPlaceDescription(context.Background(), *meeting.PlaceID)
 			slog.Error("get place description", sl.Err(err))
-			timeStr = *meeting.Time
 		}
 
 		content := messages.Format(
 			messages.M.Meeting.Invite.Message+"\n"+messages.M.Meeting.Status.Confirmed,
-			map[string]string{"place": place, "time": timeStr},
+			map[string]string{"place": place, "time": domain.Timef(*meeting.Time)},
 		)
 
 		cancelkb := view.CancelKeyboard(fmt.Sprintf("%d", meetingID))
@@ -84,7 +83,7 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 
 		finalMessage := messages.Format(messages.M.Meeting.Status.BothConfirmed, map[string]string{
 			"place": place,
-			"time":  *meeting.Time,
+			"time":  domain.Timef(*meeting.Time),
 		})
 
 		cancelkb := view.CancelKeyboard(fmt.Sprintf("%d", meetingID))

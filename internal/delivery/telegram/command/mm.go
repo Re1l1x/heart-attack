@@ -7,6 +7,7 @@ import (
 
 	"github.com/jus1d/kypidbot/internal/config/messages"
 	"github.com/jus1d/kypidbot/internal/delivery/telegram/view"
+	"github.com/jus1d/kypidbot/internal/domain"
 	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 	tele "gopkg.in/telebot.v3"
 )
@@ -64,7 +65,7 @@ func (h *Handler) MM(c tele.Context) error {
 		content := fmt.Sprintf("%s\n%s", messages.M.Meeting.Invite.Message, messages.M.Meeting.Invite.WaitConfirmation)
 		message := messages.Format(content, map[string]string{
 			"place": m.Place,
-			"time":  m.Time,
+			"time":  domain.Timef(m.Time),
 		})
 
 		kb := view.MeetingKeyboard(fmt.Sprintf("%d", m.MeetingID))
