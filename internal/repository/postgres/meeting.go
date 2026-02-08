@@ -32,10 +32,12 @@ func (r *MeetingRepo) GetMeetingByID(ctx context.Context, id int64) (*domain.Mee
 
 	err := r.db.QueryRowContext(ctx, `
 		SELECT id, dill_id, doe_id, pair_score, is_fullmatch,
-		       place_id, time, dill_state, doe_state, users_notified
+		       place_id, time, dill_state, doe_state, users_notified,
+		       dill_cant_find, doe_cant_find
 		FROM meetings WHERE id = $1`, id).Scan(
 		&m.ID, &m.DillID, &m.DoeID, &m.PairScore, &m.IsFullmatch,
 		&m.PlaceID, &m.Time, &m.DillState, &m.DoeState, &m.UsersNotified,
+		&m.DillCantFind, &m.DoeCantFind,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
@@ -58,7 +60,8 @@ func (r *MeetingRepo) GetFullMeetings(ctx context.Context) ([]domain.Meeting, er
 func (r *MeetingRepo) getMeetingsByFullmatch(ctx context.Context, fullmatch bool) ([]domain.Meeting, error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT id, dill_id, doe_id, pair_score, is_fullmatch,
-		       place_id, time, dill_state, doe_state, users_notified
+		       place_id, time, dill_state, doe_state, users_notified,
+		       dill_cant_find, doe_cant_find
 		FROM meetings WHERE is_fullmatch = $1`, fullmatch)
 	if err != nil {
 		return nil, err
@@ -71,6 +74,7 @@ func (r *MeetingRepo) getMeetingsByFullmatch(ctx context.Context, fullmatch bool
 		if err := rows.Scan(
 			&m.ID, &m.DillID, &m.DoeID, &m.PairScore, &m.IsFullmatch,
 			&m.PlaceID, &m.Time, &m.DillState, &m.DoeState, &m.UsersNotified,
+			&m.DillCantFind, &m.DoeCantFind,
 		); err != nil {
 			return nil, err
 		}
@@ -115,6 +119,7 @@ func (r *MeetingRepo) GetMeetingsStartingIn(ctx context.Context, interval time.D
 		if err := rows.Scan(
 			&m.ID, &m.DillID, &m.DoeID, &m.PairScore, &m.IsFullmatch,
 			&m.PlaceID, &m.Time, &m.DillState, &m.DoeState, &m.UsersNotified,
+			&m.DillCantFind, &m.DoeCantFind,
 		); err != nil {
 			return nil, err
 		}
@@ -126,5 +131,15 @@ func (r *MeetingRepo) GetMeetingsStartingIn(ctx context.Context, interval time.D
 func (r *MeetingRepo) MarkNotified(ctx context.Context, meetingID int64) error {
 	_, err := r.db.ExecContext(ctx,
 		`UPDATE meetings SET users_notified = TRUE WHERE id = $1`, meetingID)
+	return err
+}
+
+func (r *MeetingRepo) SetCantFind(ctx context.Context, meetingID int64, isDill bool) error {
+	col := "doe_cant_find"
+	if isDill {
+		col = "dill_cant_find"
+	}
+	_, err := r.db.ExecContext(ctx,
+		`UPDATE meetings SET `+col+` = TRUE WHERE id = $1`, meetingID)
 	return err
 }

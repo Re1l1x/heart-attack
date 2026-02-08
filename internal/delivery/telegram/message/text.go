@@ -2,7 +2,10 @@ package message
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"strconv"
+	"strings"
 
 	"github.com/jus1d/kypidbot/internal/config/messages"
 	"github.com/jus1d/kypidbot/internal/delivery/telegram/view"
@@ -18,6 +21,10 @@ func (h *Handler) Text(c tele.Context) error {
 	if err != nil {
 		slog.Error("get state", sl.Err(err))
 		return nil
+	}
+
+	if strings.HasPrefix(state, "awaiting_appearance:") {
+		return h.handleAppearance(c, sender, state)
 	}
 
 	switch state {
@@ -50,6 +57,38 @@ func (h *Handler) handleAbout(c tele.Context, sender *tele.User) error {
 	selected := domain.BinaryToSet(binaryStr)
 
 	return c.Send(messages.M.Profile.Schedule.Request, view.TimeKeyboard(selected))
+}
+
+func (h *Handler) handleAppearance(c tele.Context, sender *tele.User, state string) error {
+	meetingIDStr := strings.TrimPrefix(state, "awaiting_appearance:")
+	meetingID, err := strconv.ParseInt(meetingIDStr, 10, 64)
+	if err != nil {
+		slog.Error("parse meeting id from state", sl.Err(err), "state", state)
+		return nil
+	}
+
+	if err := h.Registration.SetState(context.Background(), sender.ID, "completed"); err != nil {
+		slog.Error("set state", sl.Err(err))
+		return nil
+	}
+
+	partnerID, err := h.Meeting.GetPartnerTelegramID(context.Background(), meetingID, sender.ID)
+	if err != nil {
+		slog.Error("get partner telegram id", sl.Err(err))
+		return nil
+	}
+
+	if partnerID != 0 {
+		kb := view.CantFindKeyboard(fmt.Sprintf("%d", meetingID))
+		msg := messages.Format(messages.M.Notifications.ArrivedPartner, map[string]string{
+			"description": c.Text(),
+		})
+		if _, err := h.Bot.Send(&tele.User{ID: partnerID}, msg, kb); err != nil {
+			slog.Error("send appearance to partner", sl.Err(err), "partner_id", partnerID)
+		}
+	}
+
+	return nil
 }
 
 func (h *Handler) handleSupport(c tele.Context, sender *tele.User) error {

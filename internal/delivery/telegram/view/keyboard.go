@@ -81,3 +81,17 @@ func CancelKeyboard(meetingID string) *tele.ReplyMarkup {
 	menu.Inline(menu.Row(cancel))
 	return menu
 }
+
+func ArrivedKeyboard(meetingID string) *tele.ReplyMarkup {
+	menu := &tele.ReplyMarkup{}
+	arrived := menu.Data(messages.M.UI.Buttons.Arrived, "arrived_meeting", meetingID)
+	menu.Inline(menu.Row(arrived))
+	return menu
+}
+
+func CantFindKeyboard(meetingID string) *tele.ReplyMarkup {
+	menu := &tele.ReplyMarkup{}
+	btn := menu.Data(messages.M.UI.Buttons.CantFind, "cant_find_partner", meetingID)
+	menu.Inline(menu.Row(btn))
+	return menu
+}

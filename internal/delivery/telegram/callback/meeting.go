@@ -113,6 +113,77 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 	return nil
 }
 
+func (h *Handler) ArrivedAtMeeting(c tele.Context) error {
+	data := c.Callback().Data
+	meetingID, err := strconv.ParseInt(data, 10, 64)
+	if err != nil {
+		slog.Error("parse meeting id", sl.Err(err), "data", data)
+		return c.Respond()
+	}
+
+	_ = c.Respond()
+
+	telegramID := c.Sender().ID
+	state := fmt.Sprintf("awaiting_appearance:%d", meetingID)
+	if err := h.Registration.SetState(context.Background(), telegramID, state); err != nil {
+		slog.Error("set awaiting_appearance state", sl.Err(err))
+		return nil
+	}
+
+	_ = c.Delete()
+	return c.Send(messages.M.Notifications.ArrivedAsk)
+}
+
+func (h *Handler) CantFindPartner(c tele.Context) error {
+	data := c.Callback().Data
+	meetingID, err := strconv.ParseInt(data, 10, 64)
+	if err != nil {
+		slog.Error("parse meeting id", sl.Err(err), "data", data)
+		return c.Respond()
+	}
+
+	_ = c.Respond()
+
+	telegramID := c.Sender().ID
+
+	bothCantFind, err := h.Meeting.SetCantFind(context.Background(), meetingID, telegramID)
+	if err != nil {
+		slog.Error("set cant find", sl.Err(err))
+		return nil
+	}
+
+	if !bothCantFind {
+		return c.Send(messages.M.Notifications.CantFindNoted)
+	}
+
+	partnerUsername, _ := h.Meeting.GetPartnerUsername(context.Background(), meetingID, telegramID)
+	if partnerUsername == "" {
+		partnerUsername = "unknown"
+	}
+
+	if err := c.Send(messages.Format(messages.M.Notifications.CantFindBoth, map[string]string{
+		"partner_username": partnerUsername,
+	})); err != nil {
+		slog.Error("send cant_find_both to user", sl.Err(err))
+	}
+
+	partnerID, _ := h.Meeting.GetPartnerTelegramID(context.Background(), meetingID, telegramID)
+	if partnerID != 0 {
+		userUsername, _ := h.Users.GetUserUsername(context.Background(), telegramID)
+		if userUsername == "" {
+			userUsername = "unknown"
+		}
+		_, err := h.Bot.Send(&tele.User{ID: partnerID}, messages.Format(messages.M.Notifications.CantFindBoth, map[string]string{
+			"partner_username": userUsername,
+		}))
+		if err != nil {
+			slog.Error("send cant_find_both to partner", sl.Err(err), "partner_id", partnerID)
+		}
+	}
+
+	return nil
+}
+
 func (h *Handler) CancelMeeting(c tele.Context) error {
 	data := c.Callback().Data
 	meetingID, err := strconv.ParseInt(data, 10, 64)

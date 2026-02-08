@@ -27,9 +27,13 @@ type StartSection struct {
 }
 
 type NotificationsSection struct {
-	Registration string `yaml:"registration" env-required:"true"`
-	Invite       string `yaml:"invite" env-required:"true"`
-	MeetingSoon  string `yaml:"meeting_soon" env-required:"true"`
+	Registration   string `yaml:"registration" env-required:"true"`
+	Invite         string `yaml:"invite" env-required:"true"`
+	MeetingSoon    string `yaml:"meeting_soon" env-required:"true"`
+	ArrivedAsk     string `yaml:"arrived_ask" env-required:"true"`
+	ArrivedPartner string `yaml:"arrived_partner" env-required:"true"`
+	CantFindNoted  string `yaml:"cant_find_noted" env-required:"true"`
+	CantFindBoth   string `yaml:"cant_find_both" env-required:"true"`
 }
 
 type ProfileSection struct {
@@ -82,6 +86,8 @@ type ButtonsSection struct {
 	CancelMeeting  string     `yaml:"cancel_meeting" env-required:"true"`
 	CancelSupport  string     `yaml:"cancel_support" env-required:"true"`
 	HowItWorks     string     `yaml:"how_it_works" env-required:"true"`
+	Arrived        string     `yaml:"arrived" env-required:"true"`
+	CantFind       string     `yaml:"cant_find" env-required:"true"`
 }
 
 type SexButtons struct {

@@ -24,6 +24,8 @@ type Meeting struct {
 	DillState      ConfirmationState
 	DoeState       ConfirmationState
 	UsersNotified  bool
+	DillCantFind   bool
+	DoeCantFind    bool
 }
 
 type MeetingRepository interface {
@@ -36,4 +38,5 @@ type MeetingRepository interface {
 	ClearMeetings(ctx context.Context) error
 	GetMeetingsStartingIn(ctx context.Context, interval time.Duration) ([]Meeting, error)
 	MarkNotified(ctx context.Context, meetingID int64) error
+	SetCantFind(ctx context.Context, meetingID int64, isDill bool) error
 }

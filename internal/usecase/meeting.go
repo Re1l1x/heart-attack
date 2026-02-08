@@ -258,6 +258,38 @@ func (m *Meeting) GetPartnerUsername(ctx context.Context, meetingID int64, teleg
 	return "", nil
 }
 
+func (m *Meeting) SetCantFind(ctx context.Context, meetingID int64, telegramID int64) (bool, error) {
+	meeting, err := m.meetings.GetMeetingByID(ctx, meetingID)
+	if err != nil || meeting == nil {
+		return false, err
+	}
+
+	dill, err := m.users.GetUser(ctx, meeting.DillID)
+	if err != nil {
+		return false, err
+	}
+	doe, err := m.users.GetUser(ctx, meeting.DoeID)
+	if err != nil {
+		return false, err
+	}
+
+	isDill := dill != nil && dill.TelegramID == telegramID
+	isDoe := doe != nil && doe.TelegramID == telegramID
+
+	if !isDill && !isDoe {
+		return false, nil
+	}
+
+	if err := m.meetings.SetCantFind(ctx, meetingID, isDill); err != nil {
+		return false, err
+	}
+
+	if isDill {
+		return meeting.DoeCantFind, nil
+	}
+	return meeting.DillCantFind, nil
+}
+
 func (m *Meeting) GetPlaceDescription(ctx context.Context, placeID int64) (string, error) {
 	places, err := m.places.GetAllPlaces(ctx)
 	if err != nil {

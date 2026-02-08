@@ -61,6 +61,7 @@ func (b *Bot) Setup() {
 
 	msg := &message.Handler{
 		Registration: b.registration,
+		Meeting:      b.meeting,
 		Users:        b.users,
 		Bot:          b.bot,
 	}
@@ -74,6 +75,8 @@ func (b *Bot) Setup() {
 	btnCancelMeeting := tele.Btn{Unique: "cancel_meeting"}
 	btnCancelSupport := tele.Btn{Unique: "cancel_support"}
 	btnHowItWorks := tele.Btn{Unique: "how_it_works"}
+	btnArrivedMeeting := tele.Btn{Unique: "arrived_meeting"}
+	btnCantFindPartner := tele.Btn{Unique: "cant_find_partner"}
 
 	b.bot.Use(LogUpdates)
 
@@ -94,6 +97,8 @@ func (b *Bot) Setup() {
 	b.bot.Handle(&btnCancelMeeting, cb.CancelMeeting)
 	b.bot.Handle(&btnCancelSupport, cb.CancelSupport)
 	b.bot.Handle(&btnHowItWorks, cb.HowItWorks)
+	b.bot.Handle(&btnArrivedMeeting, cb.ArrivedAtMeeting)
+	b.bot.Handle(&btnCantFindPartner, cb.CantFindPartner)
 
 	b.bot.Handle(tele.OnText, msg.Text)
 	b.bot.Handle(tele.OnSticker, msg.Sticker, b.AdminOnly)

@@ -2,9 +2,11 @@ package notifications
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/jus1d/kypidbot/internal/config/messages"
+	"github.com/jus1d/kypidbot/internal/delivery/telegram/view"
 	"github.com/jus1d/kypidbot/internal/domain"
 	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 	tele "gopkg.in/telebot.v3"
@@ -58,11 +60,13 @@ func (n *Notificator) MeetingReminder(ctx context.Context) error {
 			"time":  domain.Timef(*m.Time),
 		})
 
-		if _, err := n.bot.Send(&tele.User{ID: dill.TelegramID}, msg); err != nil {
+		kb := view.ArrivedKeyboard(fmt.Sprintf("%d", m.ID))
+
+		if _, err := n.bot.Send(&tele.User{ID: dill.TelegramID}, msg, kb); err != nil {
 			log.Error("notifications: send to dill", sl.Err(err), slog.Int64("telegram_id", dill.TelegramID))
 		}
 
-		if _, err := n.bot.Send(&tele.User{ID: doe.TelegramID}, msg); err != nil {
+		if _, err := n.bot.Send(&tele.User{ID: doe.TelegramID}, msg, kb); err != nil {
 			log.Error("notifications: send to doe", sl.Err(err), slog.Int64("telegram_id", doe.TelegramID))
 		}
 
