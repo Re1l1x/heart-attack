@@ -8,6 +8,7 @@ import (
 
 type Handler struct {
 	Registration *usecase.Registration
+	Meeting      *usecase.Meeting
 	Users        domain.UserRepository
 	Bot          *tele.Bot
 }

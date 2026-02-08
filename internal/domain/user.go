@@ -7,6 +7,18 @@ import (
 	"time"
 )
 
+type UserState string
+
+const (
+	UserStateStart              UserState = "start"
+	UserStateAwaitingSex        UserState = "awaiting_sex"
+	UserStateAwaitingAbout      UserState = "awaiting_about"
+	UserStateAwaitingTime       UserState = "awaiting_time"
+	UserStateAwaitingSupport    UserState = "awaiting_support"
+	UserStateAwaitingAppearance UserState = "awaiting_appearance"
+	UserStateCompleted          UserState = "completed"
+)
+
 type User struct {
 	TelegramID           int64
 	Username             string
@@ -17,7 +29,7 @@ type User struct {
 	IsPremium            bool
 	Sex                  string
 	About                string
-	State                string
+	State                UserState
 	RegistrationNotified bool
 	InviteNotified       bool
 	TimeRanges           string
@@ -31,8 +43,8 @@ type UserRepository interface {
 	SaveUser(ctx context.Context, u *User) error
 	GetUser(ctx context.Context, telegramID int64) (*User, error)
 	GetUserByUsername(ctx context.Context, username string) (*User, error)
-	GetUserState(ctx context.Context, telegramID int64) (string, error)
-	SetUserState(ctx context.Context, telegramID int64, state string) error
+	GetUserState(ctx context.Context, telegramID int64) (UserState, error)
+	SetUserState(ctx context.Context, telegramID int64, state UserState) error
 	SetUserSex(ctx context.Context, telegramID int64, sex string) error
 	SetUserAbout(ctx context.Context, telegramID int64, about string) error
 	GetTimeRanges(ctx context.Context, telegramID int64) (string, error)

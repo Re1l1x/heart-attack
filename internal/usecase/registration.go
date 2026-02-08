@@ -22,11 +22,11 @@ func (r *Registration) GetUser(ctx context.Context, telegramID int64) (*domain.U
 	return r.users.GetUser(ctx, telegramID)
 }
 
-func (r *Registration) SetState(ctx context.Context, telegramID int64, state string) error {
+func (r *Registration) SetState(ctx context.Context, telegramID int64, state domain.UserState) error {
 	return r.users.SetUserState(ctx, telegramID, state)
 }
 
-func (r *Registration) GetState(ctx context.Context, telegramID int64) (string, error) {
+func (r *Registration) GetState(ctx context.Context, telegramID int64) (domain.UserState, error) {
 	return r.users.GetUserState(ctx, telegramID)
 }
 

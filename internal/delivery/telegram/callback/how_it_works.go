@@ -6,8 +6,7 @@ import (
 )
 
 func (h *Handler) HowItWorks(c tele.Context) error {
-	if err := c.Respond(); err != nil {
-		return err
-	}
-	return c.Send(messages.M.Command.About)
+	_ = c.Respond()
+	text := messages.M.Start.Welcome + "\n\n" + messages.M.Command.About
+	return c.Edit(text)
 }

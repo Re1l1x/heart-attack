@@ -34,7 +34,7 @@ func (h *Handler) Start(c tele.Context) error {
 		return nil
 	}
 
-	if payload := c.Message().Payload; payload != "" && prevState == "start" {
+	if payload := c.Message().Payload; payload != "" && prevState == domain.UserStateStart {
 		referrer, err := h.Registration.GetUserByReferralCode(context.Background(), payload)
 		if err != nil {
 			slog.Error("get referrer by code", sl.Err(err))
@@ -45,7 +45,7 @@ func (h *Handler) Start(c tele.Context) error {
 		}
 	}
 
-	if err := h.Registration.SetState(context.Background(), sender.ID, "awaiting_sex"); err != nil {
+	if err := h.Registration.SetState(context.Background(), sender.ID, domain.UserStateAwaitingSex); err != nil {
 		slog.Error("set state", sl.Err(err))
 		return nil
 	}

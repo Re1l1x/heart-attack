@@ -6,6 +6,7 @@ import (
 	"log/slog"
 
 	"github.com/jus1d/kypidbot/internal/config/messages"
+	"github.com/jus1d/kypidbot/internal/domain"
 	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 	tele "gopkg.in/telebot.v3"
 )
@@ -26,7 +27,7 @@ func (h *Handler) Sex(c tele.Context) error {
 		return c.Respond()
 	}
 
-	if err := h.Registration.SetState(context.Background(), sender.ID, "awaiting_about"); err != nil {
+	if err := h.Registration.SetState(context.Background(), sender.ID, domain.UserStateAwaitingAbout); err != nil {
 		slog.Error("set state", sl.Err(err))
 		return c.Respond()
 	}

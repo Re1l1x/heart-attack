@@ -1,5 +1,15 @@
 -- +goose Up
-CREATE TYPE confirmation_state AS ENUM ('not_confirmed', 'confirmed', 'cancelled');
+CREATE TYPE confirmation_state AS ENUM ('not_confirmed', 'confirmed', 'cancelled', 'arrived');
+
+CREATE TYPE user_state AS ENUM (
+    'start',
+    'awaiting_sex',
+    'awaiting_about',
+    'awaiting_time',
+    'awaiting_support',
+    'awaiting_appearance',
+    'completed'
+);
 
 CREATE TABLE users (
     telegram_id BIGINT PRIMARY KEY,
@@ -11,8 +21,9 @@ CREATE TABLE users (
     is_premium BOOLEAN NOT NULL DEFAULT FALSE,
     sex TEXT,
     about TEXT NOT NULL DEFAULT '',
-    state TEXT NOT NULL DEFAULT 'start',
+    state user_state NOT NULL DEFAULT 'start',
     registration_notified BOOLEAN NOT NULL DEFAULT FALSE,
+    invite_notified BOOLEAN NOT NULL DEFAULT FALSE,
     time_ranges TEXT NOT NULL DEFAULT '000000',
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
     referral_code TEXT UNIQUE,
@@ -35,7 +46,9 @@ CREATE TABLE meetings (
     time TIMESTAMPTZ,
     dill_state confirmation_state NOT NULL DEFAULT 'not_confirmed',
     doe_state confirmation_state NOT NULL DEFAULT 'not_confirmed',
-    users_notified BOOLEAN NOT NULL DEFAULT FALSE
+    users_notified BOOLEAN NOT NULL DEFAULT FALSE,
+    dill_cant_find BOOLEAN NOT NULL DEFAULT FALSE,
+    doe_cant_find BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- +goose Down
@@ -44,3 +57,4 @@ DROP TABLE IF EXISTS places;
 DROP TABLE IF EXISTS users;
 
 DROP TYPE IF EXISTS confirmation_state;
+DROP TYPE IF EXISTS user_state;

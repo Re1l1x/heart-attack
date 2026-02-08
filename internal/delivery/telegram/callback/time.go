@@ -14,7 +14,7 @@ import (
 func (h *Handler) ConfirmTime(c tele.Context) error {
 	sender := c.Sender()
 
-	if err := h.Registration.SetState(context.Background(), sender.ID, "completed"); err != nil {
+	if err := h.Registration.SetState(context.Background(), sender.ID, domain.UserStateCompleted); err != nil {
 		slog.Error("set state", sl.Err(err))
 		return c.Respond()
 	}

@@ -62,17 +62,17 @@ func (r *UserRepo) GetUserByReferralCode(ctx context.Context, code string) (*dom
 	return scanUser(row)
 }
 
-func (r *UserRepo) GetUserState(ctx context.Context, telegramID int64) (string, error) {
-	var state string
+func (r *UserRepo) GetUserState(ctx context.Context, telegramID int64) (domain.UserState, error) {
+	var state domain.UserState
 	err := r.db.QueryRowContext(ctx,
 		`SELECT state FROM users WHERE telegram_id = $1`, telegramID).Scan(&state)
 	if errors.Is(err, sql.ErrNoRows) {
-		return "start", nil
+		return domain.UserStateStart, nil
 	}
 	return state, err
 }
 
-func (r *UserRepo) SetUserState(ctx context.Context, telegramID int64, state string) error {
+func (r *UserRepo) SetUserState(ctx context.Context, telegramID int64, state domain.UserState) error {
 	_, err := r.db.ExecContext(ctx,
 		`UPDATE users SET state = $1 WHERE telegram_id = $2`, state, telegramID)
 	return err
