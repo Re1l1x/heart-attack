@@ -15,6 +15,7 @@ import (
 	"github.com/jus1d/kypidbot/internal/notifications"
 	"github.com/jus1d/kypidbot/internal/repository/postgres"
 	"github.com/jus1d/kypidbot/internal/usecase"
+	"github.com/jus1d/kypidbot/internal/version"
 )
 
 func main() {
@@ -36,7 +37,7 @@ func main() {
 
 	slog.SetDefault(slog.New(handler))
 
-	slog.Info("starting...", slog.String("env", c.Env))
+	slog.Info("bot: starting...", slog.String("env", c.Env), version.CommitAttr, version.BranchAttr)
 
 	db, err := postgres.New(&c.Postgres)
 	if err != nil {
