@@ -2,11 +2,11 @@ package telegram
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/jus1d/kypidbot/internal/config"
+	"github.com/jus1d/kypidbot/internal/config/messages"
 	"github.com/jus1d/kypidbot/internal/delivery/telegram/callback"
 	"github.com/jus1d/kypidbot/internal/delivery/telegram/command"
 	"github.com/jus1d/kypidbot/internal/delivery/telegram/message"
@@ -121,7 +121,10 @@ func (b *Bot) Start(ctx context.Context) {
 			slog.Error("get admins", sl.Err(err))
 		} else {
 			for _, admin := range admins {
-				content := fmt.Sprintf("Bot started on branch <code>%s</code>, commit <code>%s</code>", version.Branch, version.Commit)
+				content := messages.Format(messages.M.Admin.StartedLog, map[string]string{
+					"branch": version.Branch,
+					"commit": version.Commit,
+				})
 				_, _ = b.bot.Send(&tele.User{ID: admin.TelegramID}, content)
 			}
 		}

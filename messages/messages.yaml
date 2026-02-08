@@ -109,6 +109,8 @@ admin:
     usage: "Использование: /demote @username"
     success: "@{username} больше не бог"
 
+  started_log: "Бот запущен, ветка -- <code>{branch}</code>, коммит -- <code>{branch}</code>"
+
 error:
   already_admin: "@{username} итак бог"
   user_not_found: "Пользователь @{username} не найден"

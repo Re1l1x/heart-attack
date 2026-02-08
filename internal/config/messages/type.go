@@ -106,8 +106,9 @@ type StickerSection struct {
 }
 
 type AdminSection struct {
-	Promote AdminCommand `yaml:"promote" env-required:"true"`
-	Demote  AdminCommand `yaml:"demote" env-required:"true"`
+	Promote    AdminCommand `yaml:"promote" env-required:"true"`
+	Demote     AdminCommand `yaml:"demote" env-required:"true"`
+	StartedLog string       `yaml:"started_log" env-required:"true"`
 }
 
 type AdminCommand struct {
