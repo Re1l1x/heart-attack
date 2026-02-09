@@ -40,6 +40,13 @@ type User struct {
 	CreatedAt            time.Time
 }
 
+type ReferralLeaderboardEntry struct {
+    ReferrerID    int64  `json:"referrer_id"`
+    ReferralCount int    `json:"referral_count"`
+    Username      string `json:"username"`
+    FirstName     string `json:"first_name"`
+}
+
 type UserRepository interface {
 	SaveUser(ctx context.Context, u *User) error
 	GetUser(ctx context.Context, telegramID int64) (*User, error)
@@ -58,6 +65,7 @@ type UserRepository interface {
 	GetUserByReferralCode(ctx context.Context, code string) (*User, error)
 	SetReferralCode(ctx context.Context, telegramID int64, code string) error
 	SetReferrer(ctx context.Context, telegramID int64, referrerID int64) error
+	GetReferralLeaderboard(ctx context.Context) ([]ReferralLeaderboardEntry, error)
 	MarkNotified(ctx context.Context, telegramID int64) error
 	GetNotCompleted(ctx context.Context, interval time.Duration) ([]User, error)
 	GetForInviteReminder(ctx context.Context, interval time.Duration) ([]User, error)

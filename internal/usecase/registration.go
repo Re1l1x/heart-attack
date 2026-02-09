@@ -57,3 +57,7 @@ func (r *Registration) SetReferralCode(ctx context.Context, telegramID int64, co
 func (r *Registration) SetReferrer(ctx context.Context, telegramID int64, referrerID int64) error {
 	return r.users.SetReferrer(ctx, telegramID, referrerID)
 }
+
+func (r *Registration) GetReferralLeaderboard(ctx context.Context) ([]domain.ReferralLeaderboardEntry, error) {
+    return r.users.GetReferralLeaderboard(ctx)
+}

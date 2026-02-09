@@ -250,6 +250,49 @@ func scanUserFromRows(rows *sql.Rows) (*domain.User, error) {
 	return &u, nil
 }
 
+func (r *UserRepo) GetReferralLeaderboard(ctx context.Context) ([]domain.ReferralLeaderboardEntry, error) {
+    rows, err := r.db.QueryContext(ctx, `
+        SELECT 
+            users.referrer_id,
+            COUNT(*) as referral_count,
+            u.username,
+            u.first_name
+        FROM users
+        JOIN users u ON users.referrer_id = u.telegram_id
+        WHERE users.referrer_id IS NOT NULL
+          AND u.is_admin = FALSE
+        GROUP BY users.referrer_id, u.username, u.first_name, u.created_at
+        ORDER BY COUNT(*) DESC, u.created_at ASC
+    `)
+    
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+    
+    var leaderboard []domain.ReferralLeaderboardEntry
+    for rows.Next() {
+        var entry domain.ReferralLeaderboardEntry
+        var username, firstName sql.NullString
+        
+        err := rows.Scan(
+            &entry.ReferrerID,
+            &entry.ReferralCount,
+            &username,
+            &firstName,
+        )
+        if err != nil {
+            return nil, err
+        }
+        
+        entry.Username = username.String
+        entry.FirstName = firstName.String
+        leaderboard = append(leaderboard, entry)
+    }
+    
+    return leaderboard, rows.Err()
+}
+
 func (r *UserRepo) MarkNotified(ctx context.Context, telegramID int64) error {
 	_, err := r.db.ExecContext(ctx, `UPDATE users SET registration_notified = TRUE WHERE telegram_id = $1`, telegramID)
 	return err
@@ -309,3 +352,4 @@ func (r *UserRepo) SetOptedOut(ctx context.Context, telegramID int64, optedOut b
 		`UPDATE users SET opted_out = $1 WHERE telegram_id = $2`, optedOut, telegramID)
 	return err
 }
+

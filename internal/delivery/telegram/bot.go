@@ -93,6 +93,7 @@ func (b *Bot) Setup() {
 
 	b.bot.Handle("/start", cmd.Start)
 	b.bot.Handle("/invite", cmd.Invite)
+	b.bot.Handle("/leaderboard", cmd.Leaderboard)
 	b.bot.Handle("/mm", cmd.MM, b.AdminOnly)
 	b.bot.Handle("/promote", cmd.Promote, b.AdminOnly)
 	b.bot.Handle("/demote", cmd.Demote, b.AdminOnly)
