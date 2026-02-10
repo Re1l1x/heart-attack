@@ -2,13 +2,12 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log/slog"
 	"math/rand"
 	"time"
 
 	"github.com/jus1d/kypidbot/internal/domain"
-	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 )
 
 type MeetingNotification struct {
@@ -22,8 +21,8 @@ type MeetingNotification struct {
 type FullMatchNotification struct {
 	DillTelegramID int64
 	DoeTelegramID  int64
-	DillUsername   string
-	DoeUsername    string
+	DillFirstName  string
+	DoeFirstName   string
 }
 
 type MeetResult struct {
@@ -45,6 +44,11 @@ func NewMeeting(users domain.UserRepository, places domain.PlaceRepository, meet
 	}
 }
 
+var (
+	ErrNoPlaces = errors.New("matching: no places")
+	ErrNoPairs  = errors.New("matching: no pairs")
+)
+
 func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 	regularMeetings, err := m.meetings.GetRegularMeetings(ctx)
 	if err != nil {
@@ -57,7 +61,7 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 	}
 
 	if len(regularMeetings) == 0 && len(fullMeetings) == 0 {
-		return nil, fmt.Errorf("no pairs")
+		return nil, ErrNoPairs
 	}
 
 	places, err := m.places.GetAllPlaces(ctx)
@@ -66,7 +70,7 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 	}
 
 	if len(places) == 0 && len(regularMeetings) > 0 {
-		return nil, fmt.Errorf("no places")
+		return nil, ErrNoPlaces
 	}
 
 	var result MeetResult
@@ -95,13 +99,12 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 
 		loc, err := time.LoadLocation("Europe/Samara")
 		if err != nil {
-			slog.Error("load location", sl.Err(err))
-			return nil, nil
+			return nil, fmt.Errorf("load location: %w", err)
 		}
 
 		t, err := time.ParseInLocation(layout, full, loc)
 		if err != nil {
-			panic(err)
+			return nil, fmt.Errorf("parse time %q: %w", full, err)
 		}
 
 		if err := m.meetings.AssignPlaceAndTime(ctx, mt.ID, place.ID, t); err != nil {
@@ -134,37 +137,38 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 		result.FullMatches = append(result.FullMatches, FullMatchNotification{
 			DillTelegramID: dill.TelegramID,
 			DoeTelegramID:  doe.TelegramID,
-			DillUsername:   dill.Username,
-			DoeUsername:    doe.Username,
+			DillFirstName:  dill.FirstName,
+			DoeFirstName:   doe.FirstName,
 		})
 	}
 
 	return &result, nil
 }
 
-func (m *Meeting) ConfirmMeeting(ctx context.Context, meetingID int64, telegramID int64) (bool, error) {
+func (m *Meeting) ConfirmMeeting(ctx context.Context, meetingID int64, telegramID int64) (bool, *domain.Meeting, error) {
 	meeting, err := m.meetings.GetMeetingByID(ctx, meetingID)
 	if err != nil || meeting == nil {
-		return false, err
+		return false, nil, err
 	}
 
-	dill, err := m.users.GetUser(ctx, meeting.DillID)
+	isDill := meeting.DillID == telegramID
+	isDoe := meeting.DoeID == telegramID
+
+	if !isDill && !isDoe {
+		return false, nil, nil
+	}
+
+	if err := m.meetings.UpdateState(ctx, meetingID, isDill, domain.StateConfirmed); err != nil {
+		return false, nil, err
+	}
+
+	updated, err := m.meetings.GetMeetingByID(ctx, meetingID)
 	if err != nil {
-		return false, err
-	}
-	doe, err := m.users.GetUser(ctx, meeting.DoeID)
-	if err != nil {
-		return false, err
+		return false, nil, err
 	}
 
-	if dill != nil && dill.TelegramID == telegramID {
-		return true, m.meetings.UpdateState(ctx, meetingID, true, domain.StateConfirmed)
-	}
-	if doe != nil && doe.TelegramID == telegramID {
-		return true, m.meetings.UpdateState(ctx, meetingID, false, domain.StateConfirmed)
-	}
-
-	return false, nil
+	bothConfirmed := updated.DillState == domain.StateConfirmed && updated.DoeState == domain.StateConfirmed
+	return bothConfirmed, updated, nil
 }
 
 func (m *Meeting) CancelMeeting(ctx context.Context, meetingID int64, telegramID int64) (bool, error) {
@@ -256,6 +260,31 @@ func (m *Meeting) GetPartnerUsername(ctx context.Context, meetingID int64, teleg
 	}
 
 	return "", nil
+}
+
+func (m *Meeting) GetPartner(ctx context.Context, meetingID int64, telegramID int64) (*domain.User, error) {
+	meeting, err := m.meetings.GetMeetingByID(ctx, meetingID)
+	if err != nil || meeting == nil {
+		return nil, err
+	}
+
+	dill, err := m.users.GetUser(ctx, meeting.DillID)
+	if err != nil {
+		return nil, err
+	}
+	doe, err := m.users.GetUser(ctx, meeting.DoeID)
+	if err != nil {
+		return nil, err
+	}
+
+	if dill != nil && dill.TelegramID == telegramID {
+		return doe, nil
+	}
+	if doe != nil && doe.TelegramID == telegramID {
+		return dill, nil
+	}
+
+	return nil, nil
 }
 
 func (m *Meeting) SetArrived(ctx context.Context, meetingID int64, telegramID int64) error {

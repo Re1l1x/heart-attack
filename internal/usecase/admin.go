@@ -48,3 +48,22 @@ func (a *Admin) Demote(ctx context.Context, username string) error {
 	}
 	return a.users.SetAdmin(ctx, user.TelegramID, false)
 }
+
+func (a *Admin) GetStatistics(ctx context.Context) (domain.Statistics, error) {
+	daily, weekly, err := a.users.GetLastRegisteredCount(ctx)
+	if err != nil {
+		return domain.Statistics{}, err
+	}
+
+	males, females, err := a.users.GetSexCounts(ctx)
+	if err != nil {
+		return domain.Statistics{}, err
+	}
+
+	return domain.Statistics{
+		RegisteredDaily:  daily,
+		RegisteredWeekly: weekly,
+		MaleCount:        males,
+		FemaleCount:      females,
+	}, nil
+}

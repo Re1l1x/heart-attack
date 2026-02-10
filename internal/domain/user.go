@@ -35,16 +35,17 @@ type User struct {
 	TimeRanges           string
 	IsAdmin              bool
 	OptedOut             bool
+	IsRegistered         bool
 	ReferralCode         string
 	ReferrerID           *int64
 	CreatedAt            time.Time
 }
 
 type ReferralLeaderboardEntry struct {
-    ReferrerID    int64  `json:"referrer_id"`
-    ReferralCount int    `json:"referral_count"`
-    Username      string `json:"username"`
-    FirstName     string `json:"first_name"`
+	ReferrerID    int64  `json:"referrer_id"`
+	ReferralCount int    `json:"referral_count"`
+	Username      string `json:"username"`
+	FirstName     string `json:"first_name"`
 }
 
 type UserRepository interface {
@@ -71,6 +72,8 @@ type UserRepository interface {
 	GetForInviteReminder(ctx context.Context, interval time.Duration) ([]User, error)
 	MarkInviteNotified(ctx context.Context, telegramID int64) error
 	SetOptedOut(ctx context.Context, telegramID int64, optedOut bool) error
+	GetLastRegisteredCount(ctx context.Context) (daily uint, weekly uint, err error)
+	GetSexCounts(ctx context.Context) (males uint, females uint, err error)
 }
 
 const (

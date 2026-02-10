@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
 
@@ -62,4 +63,34 @@ func (h *Handler) Demote(c tele.Context) error {
 	}
 
 	return c.Send(messages.Format(messages.M.Admin.Demote.Success, map[string]string{"username": username}))
+}
+
+func (h *Handler) Statistics(c tele.Context) error {
+	ctx := context.Background()
+
+	s, err := h.Admin.GetStatistics(ctx)
+	if err != nil {
+		slog.Error("get statistics", sl.Err(err))
+		return c.Send("Failed to get statistics")
+	}
+
+	prefixDaily := "+"
+	if s.RegisteredDaily == 0 {
+		prefixDaily = ""
+	}
+
+	prefixWeekly := "+"
+	if s.RegisteredWeekly == 0 {
+		prefixWeekly = ""
+	}
+
+	format := messages.M.Command.Statistics
+	content := messages.Format(format, map[string]string{
+		"registered_daily":  fmt.Sprintf("%s%d", prefixDaily, s.RegisteredDaily),
+		"registered_weekly": fmt.Sprintf("%s%d", prefixWeekly, s.RegisteredWeekly),
+		"male_count":        fmt.Sprintf("%d", s.MaleCount),
+		"female_count":      fmt.Sprintf("%d", s.FemaleCount),
+	})
+
+	return c.Send(content)
 }

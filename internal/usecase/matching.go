@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jus1d/kypidbot/internal/config"
+	"github.com/jus1d/kypidbot/internal/infrastructure/ollama"
 	"github.com/jus1d/kypidbot/internal/domain"
 	"github.com/jus1d/kypidbot/internal/matcher"
 )
@@ -13,15 +13,23 @@ type MatchResult struct {
 	PairsCount     int
 	FullMatchCount int
 	UsersCount     int
+	UnmatchedIDs   []int64
+}
+
+type DryPair struct {
+	DillTelegramID int64
+	DillFirstName  string
+	DoeTelegramID  int64
+	DoeFirstName   string
 }
 
 type Matching struct {
 	users    domain.UserRepository
 	meetings domain.MeetingRepository
-	ollama   *config.Ollama
+	ollama   *ollama.Client
 }
 
-func NewMatching(users domain.UserRepository, meetings domain.MeetingRepository, c *config.Ollama) *Matching {
+func NewMatching(users domain.UserRepository, meetings domain.MeetingRepository, c *ollama.Client) *Matching {
 	return &Matching{
 		users:    users,
 		meetings: meetings,
@@ -87,9 +95,74 @@ func (m *Matching) RunMatch(ctx context.Context) (*MatchResult, error) {
 		}
 	}
 
+	matched := make(map[int]bool)
+	for _, p := range pairs {
+		matched[p.I] = true
+		matched[p.J] = true
+	}
+	for _, fm := range fullMatches {
+		matched[fm.I] = true
+		matched[fm.J] = true
+	}
+
+	var unmatchedIDs []int64
+	for i, u := range users {
+		if !matched[i] {
+			unmatchedIDs = append(unmatchedIDs, u.TelegramID)
+		}
+	}
+
 	return &MatchResult{
 		PairsCount:     len(pairs),
 		FullMatchCount: len(fullMatches),
 		UsersCount:     len(users),
+		UnmatchedIDs:   unmatchedIDs,
 	}, nil
+}
+
+func (m *Matching) DryMatch(ctx context.Context) ([]DryPair, error) {
+	users, err := m.users.GetVerifiedUsers(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get verified users: %w", err)
+	}
+
+	if len(users) < 2 {
+		return nil, fmt.Errorf("not enough users")
+	}
+
+	matchUsers := make([]matcher.MatchUser, len(users))
+	for i, u := range users {
+		matchUsers[i] = matcher.MatchUser{
+			Index:      i,
+			Username:   u.Username,
+			Sex:        u.Sex,
+			About:      u.About,
+			TimeRanges: u.TimeRanges,
+		}
+	}
+
+	pairs, fullMatches, err := matcher.Match(matchUsers, m.ollama)
+	if err != nil {
+		return nil, fmt.Errorf("match: %w", err)
+	}
+
+	result := make([]DryPair, 0, len(pairs)+len(fullMatches))
+	for _, p := range pairs {
+		result = append(result, DryPair{
+			DillTelegramID: users[p.I].TelegramID,
+			DillFirstName:  users[p.I].FirstName,
+			DoeTelegramID:  users[p.J].TelegramID,
+			DoeFirstName:   users[p.J].FirstName,
+		})
+	}
+	for _, fm := range fullMatches {
+		result = append(result, DryPair{
+			DillTelegramID: users[fm.I].TelegramID,
+			DillFirstName:  users[fm.I].FirstName,
+			DoeTelegramID:  users[fm.J].TelegramID,
+			DoeFirstName:   users[fm.J].FirstName,
+		})
+	}
+
+	return result, nil
 }
