@@ -100,6 +100,7 @@ func (b *Bot) Setup() {
 
 	// admin commands
 	b.bot.Handle("/mm", cmd.MM, b.AdminOnly)
+	b.bot.Handle("/pairs", cmd.Pairs, b.AdminOnly)
 	b.bot.Handle("/promote", cmd.Promote, b.AdminOnly)
 	b.bot.Handle("/demote", cmd.Demote, b.AdminOnly)
 	b.bot.Handle("/statistics", cmd.Statistics, b.AdminOnly)

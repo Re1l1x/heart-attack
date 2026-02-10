@@ -61,6 +61,12 @@ type CommandSection struct {
 	Support     SupportSection     `yaml:"support" env-required:"true"`
 	Leaderboard LeaderboardSection `yaml:"leaderboard" env-required:"true"`
 	Statistics  string             `yaml:"statistics" env-required:"true"`
+	Pairs       PairsSection       `yaml:"pairs" env-required:"true"`
+}
+
+type PairsSection struct {
+	NotFound string `yaml:"not_found" env-required:"true"`
+	Error    string `yaml:"error" env-required:"true"`
 }
 
 type SupportSection struct {

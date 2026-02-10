@@ -75,6 +75,10 @@ command:
     ticket: "<b>Обращение в поддержку</b>\nОт: @{username}\n\n{description}"
     cancelled: "Обращение в поддержку отменено"
 
+  pairs:
+    not_found: "Пар не найдено"
+    error: "Неизвестная ошибка! Не удалось сформировать пары"
+
   statistics: |
     <b>Новые пользователи:</b>
     - за 24ч: {registered_daily}

@@ -15,6 +15,13 @@ type MatchResult struct {
 	UsersCount     int
 }
 
+type DryPair struct {
+	DillTelegramID int64
+	DillFirstName  string
+	DoeTelegramID  int64
+	DoeFirstName   string
+}
+
 type Matching struct {
 	users    domain.UserRepository
 	meetings domain.MeetingRepository
@@ -92,4 +99,51 @@ func (m *Matching) RunMatch(ctx context.Context) (*MatchResult, error) {
 		FullMatchCount: len(fullMatches),
 		UsersCount:     len(users),
 	}, nil
+}
+
+func (m *Matching) DryMatch(ctx context.Context) ([]DryPair, error) {
+	users, err := m.users.GetVerifiedUsers(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get verified users: %w", err)
+	}
+
+	if len(users) < 2 {
+		return nil, fmt.Errorf("not enough users")
+	}
+
+	matchUsers := make([]matcher.MatchUser, len(users))
+	for i, u := range users {
+		matchUsers[i] = matcher.MatchUser{
+			Index:      i,
+			Username:   u.Username,
+			Sex:        u.Sex,
+			About:      u.About,
+			TimeRanges: u.TimeRanges,
+		}
+	}
+
+	pairs, fullMatches, err := matcher.Match(matchUsers, m.ollama)
+	if err != nil {
+		return nil, fmt.Errorf("match: %w", err)
+	}
+
+	result := make([]DryPair, 0, len(pairs)+len(fullMatches))
+	for _, p := range pairs {
+		result = append(result, DryPair{
+			DillTelegramID: users[p.I].TelegramID,
+			DillFirstName:  users[p.I].FirstName,
+			DoeTelegramID:  users[p.J].TelegramID,
+			DoeFirstName:   users[p.J].FirstName,
+		})
+	}
+	for _, fm := range fullMatches {
+		result = append(result, DryPair{
+			DillTelegramID: users[fm.I].TelegramID,
+			DillFirstName:  users[fm.I].FirstName,
+			DoeTelegramID:  users[fm.J].TelegramID,
+			DoeFirstName:   users[fm.J].FirstName,
+		})
+	}
+
+	return result, nil
 }
