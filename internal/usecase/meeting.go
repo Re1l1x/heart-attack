@@ -22,8 +22,8 @@ type MeetingNotification struct {
 type FullMatchNotification struct {
 	DillTelegramID int64
 	DoeTelegramID  int64
-	DillUsername   string
-	DoeUsername    string
+	DillFirstName  string
+	DoeFirstName   string
 }
 
 type MeetResult struct {
@@ -134,8 +134,8 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 		result.FullMatches = append(result.FullMatches, FullMatchNotification{
 			DillTelegramID: dill.TelegramID,
 			DoeTelegramID:  doe.TelegramID,
-			DillUsername:   dill.Username,
-			DoeUsername:    doe.Username,
+			DillFirstName:  dill.FirstName,
+			DoeFirstName:   doe.FirstName,
 		})
 	}
 
@@ -256,6 +256,31 @@ func (m *Meeting) GetPartnerUsername(ctx context.Context, meetingID int64, teleg
 	}
 
 	return "", nil
+}
+
+func (m *Meeting) GetPartner(ctx context.Context, meetingID int64, telegramID int64) (*domain.User, error) {
+	meeting, err := m.meetings.GetMeetingByID(ctx, meetingID)
+	if err != nil || meeting == nil {
+		return nil, err
+	}
+
+	dill, err := m.users.GetUser(ctx, meeting.DillID)
+	if err != nil {
+		return nil, err
+	}
+	doe, err := m.users.GetUser(ctx, meeting.DoeID)
+	if err != nil {
+		return nil, err
+	}
+
+	if dill != nil && dill.TelegramID == telegramID {
+		return doe, nil
+	}
+	if doe != nil && doe.TelegramID == telegramID {
+		return dill, nil
+	}
+
+	return nil, nil
 }
 
 func (m *Meeting) SetArrived(ctx context.Context, meetingID int64, telegramID int64) error {

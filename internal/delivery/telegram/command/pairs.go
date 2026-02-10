@@ -24,9 +24,9 @@ func (h *Handler) Pairs(c tele.Context) error {
 
 	var sb strings.Builder
 	for _, p := range pairs {
-		sb.WriteString(fmt.Sprintf(
-			"<a href=\"tg://user?id=%d\">%s</a> -- <a href=\"tg://user?id=%d\">%s</a>\n",
-			p.DillTelegramID, p.DillFirstName, p.DoeTelegramID, p.DoeFirstName,
+		sb.WriteString(fmt.Sprintf("%s -- %s\n",
+			messages.Mention(p.DillTelegramID, p.DillFirstName),
+			messages.Mention(p.DoeTelegramID, p.DoeFirstName),
 		))
 	}
 

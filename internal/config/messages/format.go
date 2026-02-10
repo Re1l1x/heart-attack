@@ -1,6 +1,7 @@
 package messages
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -24,4 +25,8 @@ func Format(text string, vars map[string]string) string {
 	})
 
 	return result
+}
+
+func Mention(telegramID int64, firstName string) string {
+	return fmt.Sprintf(`<a href="tg://user?id=%d">%s</a>`, telegramID, firstName)
 }
