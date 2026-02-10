@@ -381,3 +381,16 @@ func (r *UserRepo) GetSexCounts(ctx context.Context) (males uint, females uint, 
 	}
 	return males, females, nil
 }
+
+func (r *UserRepo) GetUserCounts(ctx context.Context) (total uint, registered uint, optedOut uint, err error) {
+	row := r.db.QueryRowContext(ctx, `SELECT
+		COUNT(*) AS total,
+		COUNT(*) FILTER (WHERE is_registered = TRUE) AS registered,
+		COUNT(*) FILTER (WHERE opted_out = TRUE AND is_registered = TRUE) AS opted_out
+		FROM users`)
+	err = row.Scan(&total, &registered, &optedOut)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	return total, registered, optedOut, nil
+}

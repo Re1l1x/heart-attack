@@ -60,7 +60,7 @@ type CommandSection struct {
 	About       string             `yaml:"about" env-required:"true"`
 	Support     SupportSection     `yaml:"support" env-required:"true"`
 	Leaderboard LeaderboardSection `yaml:"leaderboard" env-required:"true"`
-	Statistics  string             `yaml:"statistics" env-required:"true"`
+	Admin       string             `yaml:"admin_panel" env-required:"true"`
 	Pairs       PairsSection       `yaml:"pairs" env-required:"true"`
 }
 

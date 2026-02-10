@@ -71,7 +71,7 @@ func main() {
 	userMessageRepo := postgres.NewUserMessageRepo(db)
 
 	registration := usecase.NewRegistration(userRepo)
-	admin := usecase.NewAdmin(userRepo)
+	admin := usecase.NewAdmin(userRepo, meetingRepo)
 	matching := usecase.NewMatching(userRepo, meetingRepo, ollama)
 	meeting := usecase.NewMeeting(userRepo, placeRepo, meetingRepo)
 

@@ -79,12 +79,25 @@ command:
     not_found: "Пар не найдено"
     error: "Неизвестная ошибка! Не удалось сформировать пары"
 
-  statistics: |
-    <b>Новые пользователи:</b>
-    - за 24ч: {registered_daily}
-    - за неделю: {registered_weekly}
+  admin_panel: |
+    <b>Пользователи</b>
+    - всего: {total_users}
+    - зарегистрированных: {registered_users}
+    - отказались: {opted_out_users}
+    - готовы к матчингу: {active_users}
+    - новые за 24ч: {registered_daily}
+    - новые за неделю: {registered_weekly}
+    - половое распределение: {male_count}М / {female_count}Ж
 
-    <b>Половое распределение:</b> {male_count}М/{female_count}Ж
+    <b>Встречи</b>
+    - сформировано: {meetings_total}
+    - подтверждено: {meetings_confirmed}
+    - отменено: {meetings_cancelled}
+    - ожидают: {meetings_pending}
+
+    <b>Команды</b>
+    /pairs -- предпросмотр пар (dry run)
+    /leaderboard -- таблица рефералов
 
 registration:
   completed: |

@@ -41,4 +41,12 @@ type MeetingRepository interface {
 	MarkNotified(ctx context.Context, meetingID int64) error
 	SetCantFind(ctx context.Context, meetingID int64, isDill bool) error
 	GetArrivedMeetingID(ctx context.Context, telegramID int64) (int64, error)
+	GetMeetingStats(ctx context.Context) (MeetingStats, error)
+}
+
+type MeetingStats struct {
+	Total     uint
+	Confirmed uint
+	Cancelled uint
+	Pending   uint
 }

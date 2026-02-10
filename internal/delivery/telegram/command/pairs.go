@@ -12,7 +12,16 @@ import (
 )
 
 func (h *Handler) Pairs(c tele.Context) error {
+	sticker := &tele.Sticker{File: tele.File{FileID: mmSticker}}
+	stickerMsg, err := h.Bot.Send(c.Chat(), sticker)
+	if err != nil {
+		slog.Error("send sticker", sl.Err(err))
+	}
+
 	pairs, err := h.Matching.DryMatch(context.Background())
+	if stickerMsg != nil {
+		_ = h.Bot.Delete(stickerMsg)
+	}
 	if err != nil {
 		slog.Error("dry match", sl.Err(err))
 		return c.Send(messages.M.Command.Pairs.Error)

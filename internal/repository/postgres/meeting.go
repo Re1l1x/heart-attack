@@ -162,3 +162,18 @@ func (r *MeetingRepo) GetArrivedMeetingID(ctx context.Context, telegramID int64)
 	}
 	return id, err
 }
+
+func (r *MeetingRepo) GetMeetingStats(ctx context.Context) (domain.MeetingStats, error) {
+	var s domain.MeetingStats
+	err := r.db.QueryRowContext(ctx, `SELECT
+		COUNT(*) AS total,
+		COUNT(*) FILTER (WHERE dill_state = 'confirmed' AND doe_state = 'confirmed') AS confirmed,
+		COUNT(*) FILTER (WHERE dill_state = 'cancelled' OR doe_state = 'cancelled') AS cancelled,
+		COUNT(*) FILTER (WHERE dill_state != 'cancelled' AND doe_state != 'cancelled'
+			AND NOT (dill_state = 'confirmed' AND doe_state = 'confirmed')) AS pending
+		FROM meetings`).Scan(&s.Total, &s.Confirmed, &s.Cancelled, &s.Pending)
+	if err != nil {
+		return domain.MeetingStats{}, err
+	}
+	return s, nil
+}

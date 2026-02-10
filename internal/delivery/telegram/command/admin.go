@@ -65,31 +65,28 @@ func (h *Handler) Demote(c tele.Context) error {
 	return c.Send(messages.Format(messages.M.Admin.Demote.Success, map[string]string{"username": username}))
 }
 
-func (h *Handler) Statistics(c tele.Context) error {
-	ctx := context.Background()
-
-	s, err := h.Admin.GetStatistics(ctx)
+func (h *Handler) AdminPanel(c tele.Context) error {
+	s, err := h.Admin.GetStatistics(context.Background())
 	if err != nil {
 		slog.Error("get statistics", sl.Err(err))
-		return c.Send("Failed to get statistics")
+		return c.Send("Ошибка при получении статистики")
 	}
 
-	prefixDaily := "+"
-	if s.RegisteredDaily == 0 {
-		prefixDaily = ""
-	}
+	active := s.RegisteredUsers - s.OptedOutUsers
 
-	prefixWeekly := "+"
-	if s.RegisteredWeekly == 0 {
-		prefixWeekly = ""
-	}
-
-	format := messages.M.Command.Statistics
-	content := messages.Format(format, map[string]string{
-		"registered_daily":  fmt.Sprintf("%s%d", prefixDaily, s.RegisteredDaily),
-		"registered_weekly": fmt.Sprintf("%s%d", prefixWeekly, s.RegisteredWeekly),
+	content := messages.Format(messages.M.Command.Admin, map[string]string{
+		"total_users":       fmt.Sprintf("%d", s.TotalUsers),
+		"registered_users":  fmt.Sprintf("%d", s.RegisteredUsers),
+		"opted_out_users":   fmt.Sprintf("%d", s.OptedOutUsers),
+		"active_users":      fmt.Sprintf("%d", active),
+		"registered_daily":  fmt.Sprintf("+%d", s.RegisteredDaily),
+		"registered_weekly": fmt.Sprintf("+%d", s.RegisteredWeekly),
 		"male_count":        fmt.Sprintf("%d", s.MaleCount),
 		"female_count":      fmt.Sprintf("%d", s.FemaleCount),
+		"meetings_total":    fmt.Sprintf("%d", s.Meetings.Total),
+		"meetings_confirmed": fmt.Sprintf("%d", s.Meetings.Confirmed),
+		"meetings_cancelled": fmt.Sprintf("%d", s.Meetings.Cancelled),
+		"meetings_pending":  fmt.Sprintf("%d", s.Meetings.Pending),
 	})
 
 	return c.Send(content)
