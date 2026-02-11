@@ -43,7 +43,7 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 	}
 
 	if !both {
-		if meeting == nil || meeting.PlaceID == nil || meeting.Time == nil {
+		if meeting.PlaceID == nil || meeting.Time == nil {
 			slog.Error("meeting data incomplete", "meeting_id", meetingID)
 			return nil
 		}
@@ -76,7 +76,7 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 		return nil
 	}
 
-	if meeting != nil && meeting.PlaceID != nil && meeting.Time != nil {
+	if meeting.PlaceID != nil && meeting.Time != nil {
 		place, _ := h.Meeting.GetPlaceDescription(context.Background(), *meeting.PlaceID)
 
 		finalMessage := messages.Format(messages.M.Meeting.Status.BothConfirmed, map[string]string{

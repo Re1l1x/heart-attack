@@ -3,11 +3,11 @@ package command
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"strings"
 
 	"github.com/jus1d/kypidbot/internal/config/messages"
+	"github.com/jus1d/kypidbot/internal/delivery/telegram/view"
 	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 	"github.com/jus1d/kypidbot/internal/usecase"
 	tele "gopkg.in/telebot.v3"
@@ -66,28 +66,11 @@ func (h *Handler) Demote(c tele.Context) error {
 }
 
 func (h *Handler) AdminPanel(c tele.Context) error {
-	s, err := h.Admin.GetStatistics(context.Background())
+	content, err := h.Admin.FormatPanel(context.Background())
 	if err != nil {
 		slog.Error("get statistics", sl.Err(err))
 		return c.Send("Ошибка при получении статистики")
 	}
 
-	active := s.RegisteredUsers - s.OptedOutUsers
-
-	content := messages.Format(messages.M.Command.Admin, map[string]string{
-		"total_users":       fmt.Sprintf("%d", s.TotalUsers),
-		"registered_users":  fmt.Sprintf("%d", s.RegisteredUsers),
-		"opted_out_users":   fmt.Sprintf("%d", s.OptedOutUsers),
-		"active_users":      fmt.Sprintf("%d", active),
-		"registered_daily":  fmt.Sprintf("+%d", s.RegisteredDaily),
-		"registered_weekly": fmt.Sprintf("+%d", s.RegisteredWeekly),
-		"male_count":        fmt.Sprintf("%d", s.MaleCount),
-		"female_count":      fmt.Sprintf("%d", s.FemaleCount),
-		"meetings_total":    fmt.Sprintf("%d", s.Meetings.Total),
-		"meetings_confirmed": fmt.Sprintf("%d", s.Meetings.Confirmed),
-		"meetings_cancelled": fmt.Sprintf("%d", s.Meetings.Cancelled),
-		"meetings_pending":  fmt.Sprintf("%d", s.Meetings.Pending),
-	})
-
-	return c.Send(content)
+	return c.Send(content, view.RefreshAdminKeyboard())
 }

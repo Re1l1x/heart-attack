@@ -8,6 +8,7 @@ import (
 
 type Handler struct {
 	Registration *usecase.Registration
+	Admin        *usecase.Admin
 	Meeting      *usecase.Meeting
 	Users        domain.UserRepository
 	UserMessages domain.UserMessageRepository

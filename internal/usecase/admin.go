@@ -3,7 +3,9 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/jus1d/kypidbot/internal/config/messages"
 	"github.com/jus1d/kypidbot/internal/domain"
 )
 
@@ -81,4 +83,28 @@ func (a *Admin) GetStatistics(ctx context.Context) (domain.Statistics, error) {
 		FemaleCount:      females,
 		Meetings:         meetingStats,
 	}, nil
+}
+
+func (a *Admin) FormatPanel(ctx context.Context) (string, error) {
+	s, err := a.GetStatistics(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	active := s.RegisteredUsers - s.OptedOutUsers
+
+	return messages.Format(messages.M.Command.Admin, map[string]string{
+		"total_users":       fmt.Sprintf("%d", s.TotalUsers),
+		"registered_users":  fmt.Sprintf("%d", s.RegisteredUsers),
+		"opted_out_users":   fmt.Sprintf("%d", s.OptedOutUsers),
+		"active_users":      fmt.Sprintf("%d", active),
+		"registered_daily":  fmt.Sprintf("+%d", s.RegisteredDaily),
+		"registered_weekly": fmt.Sprintf("+%d", s.RegisteredWeekly),
+		"male_count":        fmt.Sprintf("%d", s.MaleCount),
+		"female_count":      fmt.Sprintf("%d", s.FemaleCount),
+		"meetings_total":    fmt.Sprintf("%d", s.Meetings.Total),
+		"meetings_confirmed": fmt.Sprintf("%d", s.Meetings.Confirmed),
+		"meetings_cancelled": fmt.Sprintf("%d", s.Meetings.Cancelled),
+		"meetings_pending":  fmt.Sprintf("%d", s.Meetings.Pending),
+	}), nil
 }

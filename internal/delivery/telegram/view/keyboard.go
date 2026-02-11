@@ -102,6 +102,13 @@ func RegistrationCompletedKeyboard(optedOut bool) *tele.ReplyMarkup {
 	return menu
 }
 
+func RefreshAdminKeyboard() *tele.ReplyMarkup {
+	menu := &tele.ReplyMarkup{}
+	btn := menu.Data("Обновить", "refresh_admin")
+	menu.Inline(menu.Row(btn))
+	return menu
+}
+
 func CantFindKeyboard(meetingID string) *tele.ReplyMarkup {
 	menu := &tele.ReplyMarkup{}
 	btn := menu.Data(messages.M.UI.Buttons.CantFind, "cant_find_partner", meetingID)

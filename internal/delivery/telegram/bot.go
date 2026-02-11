@@ -63,6 +63,7 @@ func (b *Bot) Setup() {
 
 	cb := &callback.Handler{
 		Registration: b.registration,
+		Admin:        b.admin,
 		Meeting:      b.meeting,
 		Users:        b.users,
 		UserMessages: b.userMessages,
@@ -88,6 +89,7 @@ func (b *Bot) Setup() {
 	btnArrivedMeeting := tele.Btn{Unique: "arrived_meeting"}
 	btnCantFindPartner := tele.Btn{Unique: "cant_find_partner"}
 	btnOptOut := tele.Btn{Unique: "opt_out"}
+	btnRefreshAdmin := tele.Btn{Unique: "refresh_admin"}
 
 	b.bot.Use(LogUpdates)
 
@@ -117,6 +119,7 @@ func (b *Bot) Setup() {
 	b.bot.Handle(&btnArrivedMeeting, cb.ArrivedAtMeeting)
 	b.bot.Handle(&btnCantFindPartner, cb.CantFindPartner)
 	b.bot.Handle(&btnOptOut, cb.OptOut)
+	b.bot.Handle(&btnRefreshAdmin, cb.RefreshAdmin, b.AdminOnly)
 
 	b.bot.Handle(tele.OnText, msg.Text)
 	b.bot.Handle(tele.OnSticker, msg.Sticker, b.AdminOnly)
