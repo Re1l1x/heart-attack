@@ -162,7 +162,7 @@ func (h *Handler) CantFindPartner(c tele.Context) error {
 	partner, _ := h.Meeting.GetPartner(context.Background(), meetingID, telegramID)
 	if partner != nil {
 		if err := c.Send(messages.Format(messages.M.Notifications.CantFindBoth, map[string]string{
-			"partner_mention": messages.Mention(partner.TelegramID, partner.FirstName),
+			"partner_mention": messages.Mention(partner.TelegramID, partner.FirstName, partner.Username),
 		})); err != nil {
 			slog.Error("send cant_find_both to user", sl.Err(err))
 		}
@@ -170,7 +170,7 @@ func (h *Handler) CantFindPartner(c tele.Context) error {
 		user, _ := h.Users.GetUser(context.Background(), telegramID)
 		if user != nil {
 			_, err := h.Bot.Send(&tele.User{ID: partner.TelegramID}, messages.Format(messages.M.Notifications.CantFindBoth, map[string]string{
-				"partner_mention": messages.Mention(user.TelegramID, user.FirstName),
+				"partner_mention": messages.Mention(user.TelegramID, user.FirstName, user.Username),
 			}))
 			if err != nil {
 				slog.Error("send cant_find_both to partner", sl.Err(err), "partner_id", partner.TelegramID)
@@ -204,7 +204,7 @@ func (h *Handler) CancelMeeting(c tele.Context) error {
 
 	partnerMention := "unknown"
 	if partner != nil {
-		partnerMention = messages.Mention(partner.TelegramID, partner.FirstName)
+		partnerMention = messages.Mention(partner.TelegramID, partner.FirstName, partner.Username)
 	}
 
 	if err := h.DeleteAndSend(c, messages.Format(messages.M.Meeting.Status.Cancelled, map[string]string{
@@ -217,7 +217,7 @@ func (h *Handler) CancelMeeting(c tele.Context) error {
 		user, _ := h.Users.GetUser(context.Background(), telegramID)
 		userMention := "unknown"
 		if user != nil {
-			userMention = messages.Mention(user.TelegramID, user.FirstName)
+			userMention = messages.Mention(user.TelegramID, user.FirstName, user.Username)
 		}
 
 		_, err := h.Bot.Send(&tele.User{ID: partner.TelegramID}, messages.Format(messages.M.Meeting.Status.PartnerCancelled, map[string]string{

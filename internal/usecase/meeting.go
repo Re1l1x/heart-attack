@@ -22,7 +22,9 @@ type FullMatchNotification struct {
 	DillTelegramID int64
 	DoeTelegramID  int64
 	DillFirstName  string
+	DillUsername   string
 	DoeFirstName   string
+	DoeUsername    string
 }
 
 type MeetResult struct {
@@ -138,7 +140,9 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 			DillTelegramID: dill.TelegramID,
 			DoeTelegramID:  doe.TelegramID,
 			DillFirstName:  dill.FirstName,
+			DillUsername:   dill.Username,
 			DoeFirstName:   doe.FirstName,
+			DoeUsername:    doe.Username,
 		})
 	}
 
