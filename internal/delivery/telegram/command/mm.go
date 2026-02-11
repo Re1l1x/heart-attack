@@ -93,11 +93,11 @@ func (h *Handler) MM(c tele.Context) error {
 
 	for _, fm := range meetResult.FullMatches {
 		dillMsg := messages.Format(messages.M.Meeting.Special.FullMatchNoTime, map[string]string{
-			"partner_mention": messages.Mention(fm.DoeTelegramID, fm.DoeFirstName),
+			"partner_mention": messages.Mention(fm.DoeTelegramID, fm.DoeFirstName, fm.DoeUsername),
 		})
 
 		doeMsg := messages.Format(messages.M.Meeting.Special.FullMatchNoTime, map[string]string{
-			"partner_mention": messages.Mention(fm.DillTelegramID, fm.DillFirstName),
+			"partner_mention": messages.Mention(fm.DillTelegramID, fm.DillFirstName, fm.DillUsername),
 		})
 
 		_, err := h.Bot.Send(&tele.User{ID: fm.DillTelegramID}, dillMsg)

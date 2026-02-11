@@ -27,6 +27,9 @@ func Format(text string, vars map[string]string) string {
 	return result
 }
 
-func Mention(telegramID int64, firstName string) string {
+func Mention(telegramID int64, firstName string, username string) string {
+	if username != "" {
+		return "@" + username
+	}
 	return fmt.Sprintf(`<a href="tg://user?id=%d">%s</a>`, telegramID, firstName)
 }

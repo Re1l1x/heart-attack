@@ -99,7 +99,7 @@ func (h *Handler) handleSupport(c tele.Context, sender *tele.User) error {
 	}
 
 	content := messages.Format(messages.M.Command.Support.Ticket, map[string]string{
-		"mention":     messages.Mention(sender.ID, sender.FirstName),
+		"mention":     messages.Mention(sender.ID, sender.FirstName, sender.Username),
 		"description": c.Text(),
 	})
 

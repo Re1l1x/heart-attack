@@ -19,8 +19,10 @@ type MatchResult struct {
 type DryPair struct {
 	DillTelegramID int64
 	DillFirstName  string
+	DillUsername   string
 	DoeTelegramID  int64
 	DoeFirstName   string
+	DoeUsername    string
 }
 
 type Matching struct {
@@ -151,16 +153,20 @@ func (m *Matching) DryMatch(ctx context.Context) ([]DryPair, error) {
 		result = append(result, DryPair{
 			DillTelegramID: users[p.I].TelegramID,
 			DillFirstName:  users[p.I].FirstName,
+			DillUsername:   users[p.I].Username,
 			DoeTelegramID:  users[p.J].TelegramID,
 			DoeFirstName:   users[p.J].FirstName,
+			DoeUsername:    users[p.J].Username,
 		})
 	}
 	for _, fm := range fullMatches {
 		result = append(result, DryPair{
 			DillTelegramID: users[fm.I].TelegramID,
 			DillFirstName:  users[fm.I].FirstName,
+			DillUsername:   users[fm.I].Username,
 			DoeTelegramID:  users[fm.J].TelegramID,
 			DoeFirstName:   users[fm.J].FirstName,
+			DoeUsername:    users[fm.J].Username,
 		})
 	}
 
