@@ -47,7 +47,7 @@ func (h *Handler) Leaderboard(c tele.Context) error {
 
 	for i := 0; i < len(leaderboard) && i < 10; i++ {
 		entry := leaderboard[i]
-		displayName := h.formatDisplayName(entry.ReferrerID, entry.Username, entry.FirstName)
+		displayName := formatDisplayName(entry.ReferrerID, entry.Username, entry.FirstName)
 		medal := medals[i]
 
 		s := fmt.Sprintf("%d. %s -- %d%s\n", i+1, displayName, entry.ReferralCount, medal)
@@ -57,7 +57,7 @@ func (h *Handler) Leaderboard(c tele.Context) error {
 	if !userInTop && userPosition > 0 && userPosition <= len(leaderboard) {
 		sb.WriteString("\n")
 
-		userDisplayName := h.formatDisplayName(sender.ID, sender.Username, sender.FirstName)
+		userDisplayName := formatDisplayName(sender.ID, sender.Username, sender.FirstName)
 
 		s := fmt.Sprintf("%d. %s -- %d\n", userPosition, userDisplayName, leaderboard[userPosition-1].ReferralCount)
 		sb.WriteString(s)
@@ -68,11 +68,10 @@ func (h *Handler) Leaderboard(c tele.Context) error {
 	return c.Send(sb.String())
 }
 
-func (h *Handler) formatDisplayName(userID int64, username, firstName string) string {
+func formatDisplayName(userID int64, username, firstName string) string {
 	if username != "" {
 		return "@" + username
-	} else if firstName != "" {
-		return firstName
 	}
-	return fmt.Sprintf("ID: %d", userID)
+
+	return fmt.Sprintf(`<a href="tg://user?id=%d">%s</a>`, userID, firstName)
 }
