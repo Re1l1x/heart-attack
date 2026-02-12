@@ -15,6 +15,7 @@ type MeetingNotification struct {
 	DillID    int64
 	DoeID     int64
 	Place     string
+	PhotoURL  string
 	Time      time.Time
 }
 
@@ -118,6 +119,7 @@ func (m *Meeting) CreateMeetings(ctx context.Context) (*MeetResult, error) {
 			DillID:    dill.TelegramID,
 			DoeID:     doe.TelegramID,
 			Place:     place.Description,
+			PhotoURL:  place.PhotoURL,
 			Time:      t,
 		})
 	}
@@ -363,4 +365,8 @@ func (m *Meeting) GetPlaceDescription(ctx context.Context, placeID int64) (strin
 		}
 	}
 	return "", nil
+}
+
+func (m *Meeting) GetPlace(ctx context.Context, placeID int64) (*domain.Place, error) {
+	return m.places.GetPlace(ctx, placeID)
 }

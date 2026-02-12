@@ -24,6 +24,7 @@ COPY --from=builder /build/kypidbot .
 COPY --from=builder /build/migrate .
 COPY --from=builder /build/messages ./messages
 COPY --from=builder /build/migrations ./migrations
+COPY --from=builder /build/photos ./photos
 
 RUN apk add --no-cache tzdata
 

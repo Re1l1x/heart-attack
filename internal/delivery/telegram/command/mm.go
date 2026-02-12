@@ -78,14 +78,25 @@ func (h *Handler) MM(c tele.Context) error {
 
 		kb := view.MeetingKeyboard(fmt.Sprintf("%d", m.MeetingID))
 
-		_, err := h.Bot.Send(&tele.User{ID: m.DillID}, message, kb)
-		if err != nil {
-			slog.Error("send meeting to dill", sl.Err(err), "telegram_id", m.DillID)
-		}
-
-		_, err = h.Bot.Send(&tele.User{ID: m.DoeID}, message, kb)
-		if err != nil {
-			slog.Error("send meeting to doe", sl.Err(err), "telegram_id", m.DoeID)
+		if m.PhotoURL != "" {
+			photo := &tele.Photo{File: tele.FromDisk("photos/" + m.PhotoURL), Caption: message}
+			_, err := h.Bot.Send(&tele.User{ID: m.DillID}, photo, kb)
+			if err != nil {
+				slog.Error("send photo to dill", sl.Err(err), "telegram_id", m.DillID)
+			}
+			_, err = h.Bot.Send(&tele.User{ID: m.DoeID}, photo, kb)
+			if err != nil {
+				slog.Error("send photo to doe", sl.Err(err), "telegram_id", m.DoeID)
+			}
+		} else {
+			_, err := h.Bot.Send(&tele.User{ID: m.DillID}, message, kb)
+			if err != nil {
+				slog.Error("send meeting to dill", sl.Err(err), "telegram_id", m.DillID)
+			}
+			_, err = h.Bot.Send(&tele.User{ID: m.DoeID}, message, kb)
+			if err != nil {
+				slog.Error("send meeting to doe", sl.Err(err), "telegram_id", m.DoeID)
+			}
 		}
 
 		count++

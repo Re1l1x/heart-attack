@@ -59,8 +59,15 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 		)
 
 		cancelkb := view.CancelKeyboard(fmt.Sprintf("%d", meetingID))
-		if _, err := h.Bot.Edit(origmsg, content, cancelkb); err != nil {
-			slog.Error("edit confirmation message", sl.Err(err))
+
+		if origmsg.Photo != nil {
+			if _, err := h.Bot.EditCaption(origmsg, content, cancelkb); err != nil {
+				slog.Error("edit photo caption", sl.Err(err))
+			}
+		} else {
+			if _, err := h.Bot.Edit(origmsg, content, cancelkb); err != nil {
+				slog.Error("edit confirmation message", sl.Err(err))
+			}
 		}
 
 		_ = h.UserMessages.StoreMessageID(context.Background(), meetingID, telegramID, "original_msg", origmsg.ID)
@@ -77,17 +84,30 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 	}
 
 	if meeting.PlaceID != nil && meeting.Time != nil {
-		place, _ := h.Meeting.GetPlaceDescription(context.Background(), *meeting.PlaceID)
+		place, _ := h.Meeting.GetPlace(context.Background(), *meeting.PlaceID)
+		if place == nil {
+			slog.Error("get place", "place_id", *meeting.PlaceID)
+			return nil
+		}
 
 		finalMessage := messages.Format(messages.M.Meeting.Status.BothConfirmed, map[string]string{
-			"place": place,
+			"place": place.Description,
 			"time":  domain.Timef(*meeting.Time),
 		})
 
 		cancelkb := view.CancelKeyboard(fmt.Sprintf("%d", meetingID))
 
-		if err := h.DeleteAndSend(c, finalMessage, cancelkb); err != nil {
-			slog.Error("send both confirmed to user", sl.Err(err))
+		_ = c.Delete()
+
+		if place.PhotoURL != "" {
+			photo := &tele.Photo{File: tele.FromDisk("photos/" + place.PhotoURL), Caption: finalMessage}
+			if err := c.Send(photo, cancelkb); err != nil {
+				slog.Error("send photo to user", sl.Err(err))
+			}
+		} else {
+			if err := c.Send(finalMessage, cancelkb); err != nil {
+				slog.Error("send both confirmed to user", sl.Err(err))
+			}
 		}
 
 		partnerNotifID, _ := h.UserMessages.GetMessageID(context.Background(), meetingID, telegramID, "partner_msg")
@@ -101,9 +121,15 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 				_ = h.Bot.Delete(&tele.Message{Chat: &tele.Chat{ID: partnerID}, ID: partnerOriginalID})
 			}
 
-			_, err := h.Bot.Send(&tele.User{ID: partnerID}, finalMessage, cancelkb)
-			if err != nil {
-				slog.Error("send both confirmed to partner", sl.Err(err))
+			if place.PhotoURL != "" {
+				photo := &tele.Photo{File: tele.FromDisk("photos/" + place.PhotoURL), Caption: finalMessage}
+				if _, err := h.Bot.Send(&tele.User{ID: partnerID}, photo, cancelkb); err != nil {
+					slog.Error("send photo to partner", sl.Err(err))
+				}
+			} else {
+				if _, err := h.Bot.Send(&tele.User{ID: partnerID}, finalMessage, cancelkb); err != nil {
+					slog.Error("send both confirmed to partner", sl.Err(err))
+				}
 			}
 		}
 	}
