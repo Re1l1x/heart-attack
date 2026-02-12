@@ -1,9 +1,11 @@
 package command
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 
 	"github.com/jus1d/kypidbot/internal/config/messages"
@@ -79,14 +81,43 @@ func (h *Handler) MM(c tele.Context) error {
 		kb := view.MeetingKeyboard(fmt.Sprintf("%d", m.MeetingID))
 
 		if m.PhotoURL != "" {
-			photo := &tele.Photo{File: tele.FromDisk("photos/" + m.PhotoURL), Caption: message}
-			_, err := h.Bot.Send(&tele.User{ID: m.DillID}, photo, kb)
+			photoReader, err := h.S3.GetPhoto(context.Background(), m.PhotoURL)
 			if err != nil {
-				slog.Error("send photo to dill", sl.Err(err), "telegram_id", m.DillID)
-			}
-			_, err = h.Bot.Send(&tele.User{ID: m.DoeID}, photo, kb)
-			if err != nil {
-				slog.Error("send photo to doe", sl.Err(err), "telegram_id", m.DoeID)
+				slog.Error("get photo from s3", sl.Err(err))
+				_, err := h.Bot.Send(&tele.User{ID: m.DillID}, message, kb)
+				if err != nil {
+					slog.Error("send meeting to dill", sl.Err(err), "telegram_id", m.DillID)
+				}
+				_, err = h.Bot.Send(&tele.User{ID: m.DoeID}, message, kb)
+				if err != nil {
+					slog.Error("send meeting to doe", sl.Err(err), "telegram_id", m.DoeID)
+				}
+			} else {
+				photoBytes, err := io.ReadAll(photoReader)
+				photoReader.Close()
+				if err != nil {
+					slog.Error("read photo bytes", sl.Err(err))
+					_, err := h.Bot.Send(&tele.User{ID: m.DillID}, message, kb)
+					if err != nil {
+						slog.Error("send meeting to dill", sl.Err(err), "telegram_id", m.DillID)
+					}
+					_, err = h.Bot.Send(&tele.User{ID: m.DoeID}, message, kb)
+					if err != nil {
+						slog.Error("send meeting to doe", sl.Err(err), "telegram_id", m.DoeID)
+					}
+				} else {
+					dillPhoto := &tele.Photo{File: tele.FromReader(bytes.NewReader(photoBytes)), Caption: message}
+					_, err := h.Bot.Send(&tele.User{ID: m.DillID}, dillPhoto, kb)
+					if err != nil {
+						slog.Error("send photo to dill", sl.Err(err), "telegram_id", m.DillID)
+					}
+
+					doePhoto := &tele.Photo{File: tele.FromReader(bytes.NewReader(photoBytes)), Caption: message}
+					_, err = h.Bot.Send(&tele.User{ID: m.DoeID}, doePhoto, kb)
+					if err != nil {
+						slog.Error("send photo to doe", sl.Err(err), "telegram_id", m.DoeID)
+					}
+				}
 			}
 		} else {
 			_, err := h.Bot.Send(&tele.User{ID: m.DillID}, message, kb)

@@ -11,6 +11,7 @@ import (
 	"github.com/jus1d/kypidbot/internal/config"
 	"github.com/jus1d/kypidbot/internal/delivery/telegram"
 	"github.com/jus1d/kypidbot/internal/infrastructure/ollama"
+	"github.com/jus1d/kypidbot/internal/infrastructure/s3"
 	"github.com/jus1d/kypidbot/internal/lib/logger/daily"
 	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 	"github.com/jus1d/kypidbot/internal/notifications"
@@ -65,6 +66,14 @@ func main() {
 
 	slog.Info("postgresql: ok")
 
+	s3с, err := s3.New(&c.S3)
+	if err != nil {
+		slog.Error("s3: failed to connect", sl.Err(err))
+		os.Exit(1)
+	}
+
+	slog.Info("s3: ok")
+
 	userRepo := postgres.NewUserRepo(db)
 	placeRepo := postgres.NewPlaceRepo(db)
 	meetingRepo := postgres.NewMeetingRepo(db)
@@ -84,6 +93,7 @@ func main() {
 		meeting,
 		userRepo,
 		userMessageRepo,
+		s3с,
 	)
 	if err != nil {
 		slog.Error("failed to create the bot", sl.Err(err))

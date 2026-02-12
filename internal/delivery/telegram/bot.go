@@ -11,6 +11,7 @@ import (
 	"github.com/jus1d/kypidbot/internal/delivery/telegram/command"
 	"github.com/jus1d/kypidbot/internal/delivery/telegram/message"
 	"github.com/jus1d/kypidbot/internal/domain"
+	"github.com/jus1d/kypidbot/internal/infrastructure/s3"
 	"github.com/jus1d/kypidbot/internal/lib/logger/sl"
 	"github.com/jus1d/kypidbot/internal/usecase"
 	"github.com/jus1d/kypidbot/internal/version"
@@ -26,9 +27,10 @@ type Bot struct {
 	meeting      *usecase.Meeting
 	users        domain.UserRepository
 	userMessages domain.UserMessageRepository
+	s3           *s3.Client
 }
 
-func NewBot(env string, token string, registration *usecase.Registration, admin *usecase.Admin, matching *usecase.Matching, meeting *usecase.Meeting, users domain.UserRepository, userMessages domain.UserMessageRepository) (*Bot, error) {
+func NewBot(env string, token string, registration *usecase.Registration, admin *usecase.Admin, matching *usecase.Matching, meeting *usecase.Meeting, users domain.UserRepository, userMessages domain.UserMessageRepository, s3Client *s3.Client) (*Bot, error) {
 	pref := tele.Settings{
 		Token:     token,
 		Poller:    &tele.LongPoller{Timeout: 10 * time.Second},
@@ -49,6 +51,7 @@ func NewBot(env string, token string, registration *usecase.Registration, admin 
 		meeting:      meeting,
 		users:        users,
 		userMessages: userMessages,
+		s3:           s3Client,
 	}, nil
 }
 
@@ -59,6 +62,7 @@ func (b *Bot) Setup() {
 		Matching:     b.matching,
 		Meeting:      b.meeting,
 		Bot:          b.bot,
+		S3:           b.s3,
 	}
 
 	cb := &callback.Handler{
@@ -68,6 +72,7 @@ func (b *Bot) Setup() {
 		Users:        b.users,
 		UserMessages: b.userMessages,
 		Bot:          b.bot,
+		S3:           b.s3,
 	}
 
 	msg := &message.Handler{

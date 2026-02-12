@@ -100,9 +100,18 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 		_ = c.Delete()
 
 		if place.PhotoURL != "" {
-			photo := &tele.Photo{File: tele.FromDisk("photos/" + place.PhotoURL), Caption: finalMessage}
-			if err := c.Send(photo, cancelkb); err != nil {
-				slog.Error("send photo to user", sl.Err(err))
+			reader, err := h.S3.GetPhoto(context.Background(), place.PhotoURL)
+			if err != nil {
+				slog.Error("get photo from s3", sl.Err(err))
+				if err := c.Send(finalMessage, cancelkb); err != nil {
+					slog.Error("send both confirmed to user", sl.Err(err))
+				}
+			} else {
+				defer reader.Close()
+				photo := &tele.Photo{File: tele.FromReader(reader), Caption: finalMessage}
+				if err := c.Send(photo, cancelkb); err != nil {
+					slog.Error("send photo to user", sl.Err(err))
+				}
 			}
 		} else {
 			if err := c.Send(finalMessage, cancelkb); err != nil {
@@ -122,9 +131,18 @@ func (h *Handler) ConfirmMeeting(c tele.Context) error {
 			}
 
 			if place.PhotoURL != "" {
-				photo := &tele.Photo{File: tele.FromDisk("photos/" + place.PhotoURL), Caption: finalMessage}
-				if _, err := h.Bot.Send(&tele.User{ID: partnerID}, photo, cancelkb); err != nil {
-					slog.Error("send photo to partner", sl.Err(err))
+				reader, err := h.S3.GetPhoto(context.Background(), place.PhotoURL)
+				if err != nil {
+					slog.Error("get photo from s3 for partner", sl.Err(err))
+					if _, err := h.Bot.Send(&tele.User{ID: partnerID}, finalMessage, cancelkb); err != nil {
+						slog.Error("send both confirmed to partner", sl.Err(err))
+					}
+				} else {
+					defer reader.Close()
+					photo := &tele.Photo{File: tele.FromReader(reader), Caption: finalMessage}
+					if _, err := h.Bot.Send(&tele.User{ID: partnerID}, photo, cancelkb); err != nil {
+						slog.Error("send photo to partner", sl.Err(err))
+					}
 				}
 			} else {
 				if _, err := h.Bot.Send(&tele.User{ID: partnerID}, finalMessage, cancelkb); err != nil {
