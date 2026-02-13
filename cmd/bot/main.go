@@ -106,7 +106,7 @@ func main() {
 	bot.Setup()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	notificator := notifications.New(&c.Notifications, bot.TeleBot(), userRepo, placeRepo, meetingRepo)
+	notificator := notifications.New(&c.Notifications, bot.TeleBot(), userRepo, placeRepo, meetingRepo, settingsRepo)
 	notificator.Register(notificator.MeetingReminder)
 	notificator.Register(notificator.RegisterReminder)
 	notificator.Register(notificator.InviteReminder)

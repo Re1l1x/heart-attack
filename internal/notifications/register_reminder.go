@@ -10,6 +10,12 @@ import (
 )
 
 func (n *Notificator) RegisterReminder(ctx context.Context) error {
+	value, _ := n.settings.Get(ctx, "registration_closed")
+	closed := value == "true"
+	if closed {
+		return nil
+	}
+
 	list, err := n.users.GetNotCompleted(ctx, n.config.RegistrationReminderIn)
 	if err != nil {
 		return err

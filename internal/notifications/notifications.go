@@ -19,16 +19,18 @@ type Notificator struct {
 	places   domain.PlaceRepository
 	meetings domain.MeetingRepository
 	config   *config.Notifications
+	settings domain.SettingsRepository
 	funcs    []NotifyFunc
 }
 
-func New(c *config.Notifications, bot *tele.Bot, users domain.UserRepository, places domain.PlaceRepository, meetings domain.MeetingRepository) *Notificator {
+func New(c *config.Notifications, bot *tele.Bot, users domain.UserRepository, places domain.PlaceRepository, meetings domain.MeetingRepository, settings domain.SettingsRepository) *Notificator {
 	return &Notificator{
 		bot:      bot,
 		users:    users,
 		places:   places,
 		meetings: meetings,
 		config:   c,
+		settings: settings,
 	}
 }
 

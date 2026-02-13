@@ -17,6 +17,12 @@ const (
 )
 
 func (n *Notificator) InviteReminder(ctx context.Context) error {
+	value, _ := n.settings.Get(ctx, "registration_closed")
+	closed := value == "true"
+	if closed {
+		return nil
+	}
+
 	list, err := n.users.GetForInviteReminder(ctx, n.config.InviteReminderIn)
 	if err != nil {
 		return err
