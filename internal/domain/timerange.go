@@ -43,25 +43,20 @@ func SetToBinary(selected map[string]bool) string {
 }
 
 func PickRandomTime(timeIntersection string) string {
-	var indices []int
+	var hours []int
 	for i, bit := range timeIntersection {
-		if bit == '1' {
-			indices = append(indices, i)
+		if bit == '1' && i < len(TimeRanges) {
+			startHour := 10 + i*2
+			hours = append(hours, startHour, startHour+1)
 		}
 	}
 
-	if len(indices) == 0 {
+	if len(hours) == 0 {
 		return "12:00"
 	}
 
-	index := indices[rand.Intn(len(indices))]
-	tr := TimeRanges[index]
-
-	begin := tr[:2]
-	minutes := rand.Intn(12) * 5
-	// minutes := rand.Intn(6) * 10
-
-	return fmt.Sprintf("%s:%02d", begin, minutes)
+	h := hours[rand.Intn(len(hours))]
+	return fmt.Sprintf("%d:00", h)
 }
 
 func HasTimeOverlap(timeRange string) bool {
